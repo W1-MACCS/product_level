@@ -93,8 +93,7 @@ MAP_RES_CP_SIZE_CORREL_MISC_ANAND<-function(CP,RCC,RES_CONS_PATp){
       #### BUILDIUNG OF CORRELATION MATRIX ####
       
       ##Create empty matrix that shows correlation between assigned and unassigned resources
-      #RC_Correl = matrix(nrow = length(already_assigned), ncol = FIRM$PRODUCTION_ENVIRONMENT$NUMB_RES)#empty matrix for correlations between assigned and not assigned resources
-      
+
       ##fill empty matrix with correlations
       
       RC_Correl = cor(RES_CONS_PATp,RES_CONS_PATp)
@@ -241,27 +240,7 @@ MAP_RES_CP_SIZE_RANDOM_MISC<-function(CP, RCC, RES_CONS_PATp){
       
       
       
-      
-      # not_assigned = sample(not_assigned)
-      # ACP_pre2 = vector(mode = 'numeric', length = CP-1)
-      # 
-      # 
-      # x = sample(length(RC_to_ACP),length(not_assigned), replace = TRUE)
-      # RCC_not_assigned = RCC[not_assigned]
-      # random_assign = data.frame(x,not_assigned, RCC_not_assigned)
-      # 
-      # i=1
-      # while (sum(RCC)-sum(RCC[already_assigned])-sum(random_assign$RCC_not_assigned[c(1:i)])> MISCPOOLSIZE-random_assign$RCC_not_assigned[i]){
-      #    
-      #    RC_to_ACP[[random_assign$x[i]]] = c(RC_to_ACP[[random_assign$x[i]]],as.integer(random_assign$not_assigned[i]))
-      #    ACP_pre2[[random_assign$x[i]]] = sum(ACP_pre2[[random_assign$x[i]]],random_assign$RCC_not_assigned[i])
-      #    not_assigned = as.integer(random_assign$not_assigned[i+1:(length(random_assign$not_assigned)-i)])
-      #    i = i+1
-      # }
-      # 
-      # 
-      
-      ###Miscpool building
+      ##Miscpool building
       
       
       
@@ -360,14 +339,9 @@ MAP_RES_CP_SIZE_CORREL_CUTOFF_MISC_ANAND<-function(CP, RCC, RES_CONS_PATp){
         
         while(RC_Correl$x[x] >= CC && NUMB_RES - length(unlist(RC_to_ACP))> (CP-i) && sum(RCC[unlist(RC_to_ACP)])< (1000000- MISCPOOLSIZE)){
           
-          #NUMB_RES - length(unlist(RC_to_ACP))> length(i:CP) yields a different result, since the constraint is reached one resource to early, which causes that
-          #the then not assigned resource is assigned later (if not even in the misc pool) and the correlation is then lower --> higher error
-          
           
           RC_to_ACP[[i]] = c(RC_to_ACP[[i]],not_assigned[RC_Correl$ix[x]])
-          #not_assigned = setdiff(c(1:RCCn),unlist(RC_to_ACP))
-          #ACP[i] = sum(ACP[i],RCC[RC_Correl$ix[x]])
-          #already_assigned[RC_Correl$ix[x]] = c(already_assigned[RC_Correl$ix[x]],RC_Correl$ix[x])
+         
           x=x+1
           
         }
@@ -478,5 +452,30 @@ MAP_CP_P_BIGPOOL <-function(RC_to_ACP,RES_CONS_PATp,RCC, NUMB_PRO){
 ACT_CONS_PAT = as.matrix(ACT_CONS_PAT)    
     
     
+  return(ACT_CONS_PAT)
+}
+
+
+MAP_CP_P_VOLUME <-function(RC_to_ACP,MXQ, NUMB_PRO){
+  
+
+  RC_ACP_index<-RC_to_ACP
+  
+  # preallocation
+  ACT_CONS_PAT<-matrix(0,nrow = NUMB_PRO,ncol = length(RC_ACP_index))
+  
+  normalized_MXQ = MXQ/sum(MXQ)
+  
+  for (i in 1:length(RC_ACP_index)){
+    
+    
+    
+    ACT_CONS_PAT[,i] = normalized_MXQ
+    
+  }
+  
+  
+  ACT_CONS_PAT = as.matrix(ACT_CONS_PAT)    
+
   return(ACT_CONS_PAT)
 }

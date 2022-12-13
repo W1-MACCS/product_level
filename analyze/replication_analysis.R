@@ -69,7 +69,7 @@ ANAND1 = subset(ANAND, PACP ==3)
 
 reg = MPE ~ ACP + DISP1 +DISP2 + DENS + COR1_CLASS + COR2_CLASS + Q_VAR
 
-reg_data = data.frame(lapply(ANAND1[,all.vars(reg)], scale))
+reg_data = data.frame(lapply(ANAND[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("anand",2,".doc"), table.number = 1)
 
@@ -86,7 +86,7 @@ REPLICATION$BE_AB = REPLICATION$UC5-REPLICATION$OC5
 REPLICATION1 = subset(REPLICATION, PACP == 3)
 reg = MAPE ~ ACP + DISP1 +DISP2 + DENS + COR1_CLASS + COR2_CLASS + Q_VAR
 
-reg_data = data.frame(lapply(REPLICATION1[,all.vars(reg)], scale))
+reg_data = data.frame(lapply(REPLICATION[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
@@ -165,7 +165,7 @@ for(i in 1:100){
   
   
 
-ggplot(ks_results, aes(x=sample_sizes,y=p.value))+geom_line()+geom_line(aes(y=coefficient_diff))
+ggplot(ks_results, aes(x=sample_sizes,y=p.value))+geom_line()+geom_line(aes(y=coefficient_diff))+theme_classic()
 
 write.csv(ks_results,"ks_ressults.csv")
 
@@ -187,7 +187,7 @@ plot_data =rbind(plot_data,plot_data_rep)
 plot_data$ACP = as.factor(plot_data$ACP)
 
 
-ggplot(plot_data, aes(x = ACP, y= MAPE)) + geom_boxplot(aes(fill=Model)) + theme_classic()
+ggplot(plot_data, aes(x = ACP, y= MAPE)) + geom_boxplot(aes(fill=Model)) + theme_classic()+theme(legend.position="bottom")
 
 
 plot_data = subset(plot_data, ACP!= 50)
@@ -236,7 +236,7 @@ plot_data=subset(plot_data, ACP == 1 | ACP ==20 | ACP==40)
 plot_data$DENS = factor(plot_data$DENS, levels = c('LOW','MID','HIGH'))
 
 
-ggplot(plot_data, aes(x = DENS, y= MAPE)) + geom_boxplot(aes(fill=Model)) + theme_classic()+facet_grid(cols = vars(ACP))
+ggplot(plot_data, aes(x = DENS, y= MAPE)) + geom_boxplot(aes(fill=Model)) + theme_classic()+facet_grid(cols = vars(ACP))+theme(legend.position="bottom")
 
 
 plot_data = subset(plot_data, ACP!= 50)
@@ -285,12 +285,13 @@ plot_data=subset(plot_data, ACP == 1 | ACP ==20 | ACP==40)
 plot_data$DENS = factor(plot_data$DENS, levels = c('LOW','MID','HIGH'))
 
 
-ggplot(plot_data, aes(x = DENS, y= BE_AB)) + geom_boxplot(aes(fill=Model)) + theme_classic()+facet_grid(cols = vars(ACP))
+ggplot(plot_data, aes(x = DENS, y= BE_AB)) + geom_boxplot(aes(fill=Model)) + theme_classic()+facet_grid(cols = vars(ACP))+theme(legend.position="bottom")
+
 
 
 
 plot_data = subset(plot_data, ACP!= 50)
-ggplot(data = plot_data, aes(x=BE_AB, fill = Model))+geom_density(alpha = 0.75)+theme_minimal()+facet_wrap(vars(ACP,DENS))+ylim(0,10)
+ggplot(data = plot_data, aes(x=TVC_BIAS, fill = Model))+geom_density(alpha = 0.75)+theme_minimal()#+facet_wrap(vars(ACP,DENS))+ylim(0,10)
 
 
 
