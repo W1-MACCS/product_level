@@ -1,12 +1,12 @@
 
-DATA = output
+DATA = read.csv("data/EXTENSION.csv", sep= ",")
+
+#DATA = output
 
 DATA = DATA[which(!is.na(DATA$MAPE)),]
 
 
-#DATA$CS = as.factor(DATA$CS)
-#DATA$PDR = as.factor(DATA$PDR)
-#DATA= subset(DATA,CS ==0 & PDR ==0)
+
 
 dec_1 = c(rep("dec_1",nrow(DATA)))
 d1 = data.frame(dec_1,DATA$pe_dec_1,DATA$PDR, DATA$CS_levels)
@@ -56,7 +56,7 @@ dataset = rbind(d1,d2,d3,d4,d5,d6,d7,d8,d9,d10)
 dataset$PDR[dataset$PDR == 1] <- "VOLUME"
 dataset$PDR[dataset$PDR == 0] <- "ACTIVITY"
 dataset$CS[dataset$CS == 0] <- "ALL UNIT-LEVEL COSTS"
-#dataset$CS[dataset$CS == 1] <- "WITH NON-UNIT-LEVEL COSTS"
+dataset$CS[dataset$CS == 1] <- "WITH NON-UNIT-LEVEL COSTS"
 
 colnames(dataset) = c("group","PE", "DRIVER","CS")
 
@@ -94,14 +94,11 @@ ggplot(data, aes(y=PE, x=group, group = DRIVER))+geom_line(aes(col = DRIVER))+ge
 
 ########################################################################################
 
-DATA = output
+#DATA = output
 
 DATA = DATA[which(!is.na(DATA$MAPE)),]
 
 
-#DATA$CS = as.factor(DATA$CS)
-#DATA$PDR = as.factor(DATA$PDR)
-#DATA= subset(DATA,CS ==1 & PDR ==1 & Q_VAR == "EXTREME")
 
 dec_1 = c(rep("dec_1",nrow(DATA)))
 d1 = data.frame(dec_1,DATA$ce_dec_1,DATA$PDR, DATA$CS)
@@ -168,7 +165,7 @@ ggplot(dataset, aes(y=PE, x=group,fill =DRIVER))+geom_boxplot(outlier.shape= NA)
 
 
 ###################################################################################
-
+## Appendix Correlation between demand and resource consumption
 
 DATA = output
 
@@ -176,15 +173,14 @@ library(ggplot2)
 DATA$PDR = as.factor(DATA$PDR)
 DATA$CS_levels[DATA$CS_levels == 0] <- "ALL UNIT-LEVEL COSTS"
 DATA$CS_levels = factor(DATA$CS_levels,levels = c("ALL UNIT-LEVEL COSTS", "LOW","MID","HIGH") )
-ggplot(DATA,aes(fill=CS_levels,y = BE_AB))+geom_boxplot()+theme_classic()+
-  ylab("Pearson correlation between MXQ and RES_CONS_PAT")+facet_grid(vars(PDR))
+ggplot(DATA,aes(fill=CS_levels,y = demand_pattern))+geom_boxplot()+theme_classic()+
+  ylab("Pearson correlation between MXQ and RES_CONS_PAT")
 
 
 ##########################################################################################################
 ##EFFECT MATRIX
 
 
-DATA = output
 
 DATA = DATA[which(!is.na(DATA$VB_PATTERN)),]
 
@@ -214,33 +210,17 @@ linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 
-###############################################################################################
-
-DATA = output
-
-DATA = DATA[which(!is.na(DATA$VB_PATTERN)),]
-
-cor_inter_pe = c(0)
-cor_inter_mxq = c(0)
-cor_pe_rankdiff = c(0)
-cor_mxq_rankdiff = c(0)
-
-for(i in 1:nrow(DATA)){
-  #pe=116:165, inter=246:295, mxq = 170:219
-  
-  cor_inter_pe[i] = cor(t(DATA[i,116:165]),t(DATA[i,246:295]))
-  cor_inter_mxq[i] = cor(t(DATA[i,170:219]),t(DATA[i,246:295]))
-  cor_pe_rankdiff[i] = cor(t(DATA[i,116:165]),t(DATA[i,296:345]))
-  cor_mxq_rankdiff[i] = cor(t(DATA[i,170:219]),t(DATA[i,296:345]))
-}
-
-
-DATA$cor_inter_pe = cor_inter_pe
-DATA$cor_inter_mxq = cor_inter_mxq
-DATA$cor_pe_rankdiff = cor_pe_rankdiff
-DATA$cor_mxq_rankdiff = cor_mxq_rankdiff
 
 
 
-DATA$mean_rankdiff = rowMeans(abs(DATA[,296:345]))
+
+
+high = (DATA$pe_dec_10[1]+DATA$pe_dec_9[1])/2
+
+i = 2
+low = (DATA$pe_dec_1[i]+DATA$pe_dec_2[i])/2
+
+
+
+
 

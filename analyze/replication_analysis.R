@@ -1,9 +1,11 @@
 
 
-ANAND = read.csv("C:/Users/cms9023/Technische Universität Hamburg - W1/CSD - Dokumente/Stylized Facts/Replication/04 DATA/ANAND.csv", sep =";")
-REPLICATION = read.csv("C:/Users/cms9023/Technische Universität Hamburg - W1/CSD - Dokumente/Stylized Facts/Replication/04 DATA/CSD_2022-08-22-2223.csv", sep= ";")
+ANAND = read.csv("data/ORIGINAL.csv", sep =";")
+REPLICATION = read.csv("data/REPLICATION.csv", sep= ";")
 #ANAND$DISP1[which(ANAND$DISP1 ==5)]<-6
 REPLICATION = REPLICATION[which(!is.na(REPLICATION$MAPE)),]
+
+
 
 #=======================================Distributional equivalence=====================================####
 
@@ -184,10 +186,10 @@ colnames(plot_data_rep) = c('Model','ACP',"MAPE")
 
 plot_data =rbind(plot_data,plot_data_rep)
 
-plot_data$ACP = as.factor(plot_data$ACP)
+plot_data$CP = as.factor(plot_data$ACP)
 
 
-ggplot(plot_data, aes(x = ACP, y= MAPE)) + geom_boxplot(aes(fill=Model)) + theme_classic()+theme(legend.position="bottom")
+ggplot(plot_data, aes(x = CP, y= MAPE)) + geom_boxplot(aes(fill=Model)) + theme_classic()#+theme(legend.position="bottom")
 
 
 plot_data = subset(plot_data, ACP!= 50)

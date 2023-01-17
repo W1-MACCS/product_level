@@ -5,7 +5,7 @@
 
 ## ====================================== INPUT FOR FIRM GENERATION ==================================================
 
-NUMB_FIRMS = 300
+NUMB_FIRMS = 200
 NUMB_PRO = 50
 NUMB_RES = 50
 DISP1 = c(2,5,10)
@@ -38,7 +38,7 @@ colnames(FIRM) = c('randID',"FirmID",'NUMB_PRO','NUMB_RES',"DISP1", "DISP2", "DE
 COSTING_SYSTEM = list()
 
 CP = c(1,5,10,15,20,25,30,35,40,45,50)
-CP_HEURISTIC = c(1)
+CP_HEURISTIC = c(0,1,2,3)
 CD_HEURISTIC = c(1,0)
 
 COSTING_SYSTEM = expand.grid(CP,CP_HEURISTIC,CD_HEURISTIC)
@@ -63,7 +63,7 @@ colnames(DATA) = c("randID","FirmID",'CostSysID','PACP','ACP','PDR',"DISP1", "DI
 
 
 # 
-# output <- foreach(i = 1:100, .combine = rbind, .options.snow = opts) %dopar% { #dopar
+
 DATA_list = list()
 
 for(i in 1:nrow(FIRM)){
