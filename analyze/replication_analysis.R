@@ -4,7 +4,7 @@ ANAND = read.csv("data/ORIGINAL.csv", sep =";")
 REPLICATION = read.csv("data/REPLICATION.csv", sep= ";")
 #ANAND$DISP1[which(ANAND$DISP1 ==5)]<-6
 REPLICATION = REPLICATION[which(!is.na(REPLICATION$MAPE)),]
-
+REPLICATION$BE_AB = REPLICATION$UC5-REPLICATION$OC5
 
 
 #=======================================Distributional equivalence=====================================####
@@ -99,14 +99,13 @@ apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.nu
 #=======================================Test for normality and KS Test===========================##
 
 
-
 normality_test = c()
 
 for(i in 1:100){
   
   excerpt = sample(c(1:nrow(ANAND)),1000,replace=FALSE)
   
-  result = shapiro.test(ANAND$MPE[excerpt])
+  result = shapiro.test(sqrt(ANAND$MPE[excerpt]))
 
   normality_test[i] = result$p.value
   
@@ -180,7 +179,7 @@ library(moments)
 plot_data = data.frame(rep("ORIGINAL",nrow(ANAND)),ANAND$ACP,ANAND$MPE)
 colnames(plot_data) = c('Model','ACP',"MAPE")
 
-plot_data_rep = data.frame(rep("REPLICATION",nrow(REPLICATION)),REPLICATION$ACP,REPLICATION$MAPE)
+plot_data_rep = data.frame(rep("REPLICATION",nrow(REPLICATION)),REPLICATION$CP,REPLICATION$MAPE)
 colnames(plot_data_rep) = c('Model','ACP',"MAPE")
 
 
@@ -189,7 +188,7 @@ plot_data =rbind(plot_data,plot_data_rep)
 plot_data$CP = as.factor(plot_data$ACP)
 
 
-ggplot(plot_data, aes(x = CP, y= MAPE)) + geom_boxplot(aes(fill=Model)) + theme_classic()#+theme(legend.position="bottom")
+ggplot(plot_data, aes(x = CP, y= MAPE)) + geom_boxplot(outlier.shape= NA,aes(fill=Model)) + theme_classic()+theme(legend.position="bottom")+ylim(0,1.0)
 
 
 plot_data = subset(plot_data, ACP!= 50)
@@ -227,7 +226,7 @@ library(ggplot2)
 plot_data = data.frame(rep("ORIGINAL",nrow(ANAND)),ANAND$DENS_CLASS,ANAND$ACP,ANAND$MPE)
 colnames(plot_data) = c('Model','DENS','ACP',"MAPE")
 
-plot_data_rep = data.frame(rep("REPLICATION",nrow(REPLICATION)),REPLICATION$DENS_CLASS,REPLICATION$ACP,REPLICATION$MAPE)
+plot_data_rep = data.frame(rep("REPLICATION",nrow(REPLICATION)),REPLICATION$DENS_CLASS,REPLICATION$CP,REPLICATION$MAPE)
 colnames(plot_data_rep) = c('Model','DENS','ACP',"MAPE")
 
 
@@ -238,7 +237,7 @@ plot_data=subset(plot_data, ACP == 1 | ACP ==20 | ACP==40)
 plot_data$DENS = factor(plot_data$DENS, levels = c('LOW','MID','HIGH'))
 
 
-ggplot(plot_data, aes(x = DENS, y= MAPE)) + geom_boxplot(aes(fill=Model)) + theme_classic()+facet_grid(cols = vars(ACP))+theme(legend.position="bottom")
+ggplot(plot_data, aes(x = DENS, y= MAPE)) + geom_boxplot(outlier.shape= NA,aes(fill=Model)) + theme_classic()+facet_grid(cols = vars(ACP))+theme(legend.position="bottom")+ylim(0,1)
 
 
 plot_data = subset(plot_data, ACP!= 50)
@@ -276,7 +275,7 @@ wilcox.test(subset_plot_data$MAPE~subset_plot_data$Model)
 plot_data = data.frame(rep("ORIGINAL",nrow(ANAND)),ANAND$DENS_CLASS,ANAND$ACP,ANAND$BE_AB)
 colnames(plot_data) = c('Model','DENS','ACP',"BE_AB")
 
-plot_data_rep = data.frame(rep("REPLICATION",nrow(REPLICATION)),REPLICATION$DENS_CLASS,REPLICATION$ACP,REPLICATION$BE_AB)
+plot_data_rep = data.frame(rep("REPLICATION",nrow(REPLICATION)),REPLICATION$DENS_CLASS,REPLICATION$CP,REPLICATION$BE_AB)
 colnames(plot_data_rep) = c('Model','DENS','ACP',"BE_AB")
 
 
@@ -287,7 +286,7 @@ plot_data=subset(plot_data, ACP == 1 | ACP ==20 | ACP==40)
 plot_data$DENS = factor(plot_data$DENS, levels = c('LOW','MID','HIGH'))
 
 
-ggplot(plot_data, aes(x = DENS, y= BE_AB)) + geom_boxplot(aes(fill=Model)) + theme_classic()+facet_grid(cols = vars(ACP))+theme(legend.position="bottom")
+ggplot(plot_data, aes(x = DENS, y= BE_AB)) + geom_boxplot(outlier.shape= NA,aes(fill=Model)) + theme_classic()+facet_grid(cols = vars(ACP))+theme(legend.position="bottom")+geom_hline(yintercept = 0)
 
 
 

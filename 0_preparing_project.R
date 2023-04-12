@@ -12,6 +12,7 @@
 # install.packages('doParallel')
 library('doParallel')
 library('doSNOW')
+library("MASS")
 
 
 ##############################

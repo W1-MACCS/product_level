@@ -1,11 +1,11 @@
 
 DATA = read.csv("data/EXTENSION.csv", sep= ",")
 
-#DATA = output
+DATA = output
 
 DATA = DATA[which(!is.na(DATA$MAPE)),]
 
-
+DATA$CS_levels = DATA$CS
 
 
 dec_1 = c(rep("dec_1",nrow(DATA)))
@@ -56,12 +56,14 @@ dataset = rbind(d1,d2,d3,d4,d5,d6,d7,d8,d9,d10)
 dataset$PDR[dataset$PDR == 1] <- "VOLUME"
 dataset$PDR[dataset$PDR == 0] <- "ACTIVITY"
 dataset$CS[dataset$CS == 0] <- "ALL UNIT-LEVEL COSTS"
-dataset$CS[dataset$CS == 1] <- "WITH NON-UNIT-LEVEL COSTS"
+dataset$CS[dataset$CS == 1] <- "SIMPLE COST HIERARCHY"
+dataset$CS[dataset$CS == 2] <- "THEORETICAL ABC COST HIERARCHY"
+dataset$CS[dataset$CS == 3] <- "EMPIRICAL ABC COST HIERARCHY"
 
 colnames(dataset) = c("group","PE", "DRIVER","CS")
 
 dataset$group = factor(dataset$group, levels = c("dec_1","dec_2","dec_3","dec_4","dec_5","dec_6","dec_7","dec_8","dec_9","dec_10"))
-dataset$CS = factor(dataset$CS, levels = c("ALL UNIT-LEVEL COSTS", "LOW","MID","HIGH"))
+dataset$CS = factor(dataset$CS, levels = c("ALL UNIT-LEVEL COSTS", "SIMPLE COST HIERARCHY","THEORETICAL ABC COST HIERARCHY","EMPIRICAL ABC COST HIERARCHY"))
 library(ggplot2)
 
 
@@ -71,6 +73,7 @@ ggplot(dataset, aes(y=PE, x=group, fill = DRIVER))+geom_boxplot(outlier.shape= N
   theme_classic()+geom_hline(yintercept = 0)+xlab("RANK-ORDERED PRODUCTS - Low to High Volume")+
   theme(legend.position = "bottom", axis.text.x = element_blank())
 
+dataset = subset(dataset, CS == "THEORETICAL ABC COST HIERARCHY" | CS == "EMPIRICAL ABC COST HIERARCHY")
 
 #2. Extension with four levels of cost structure and two types of drivers 
 ggplot(dataset, aes(y=PE, x=group,fill =DRIVER))+geom_boxplot(outlier.shape= NA)+ylim(-1,1)+
@@ -94,7 +97,7 @@ ggplot(data, aes(y=PE, x=group, group = DRIVER))+geom_line(aes(col = DRIVER))+ge
 
 ########################################################################################
 
-#DATA = output
+DATA = output
 
 DATA = DATA[which(!is.na(DATA$MAPE)),]
 
@@ -108,7 +111,7 @@ dec_2 = c(rep("dec_2",nrow(DATA)))
 d2 = data.frame(dec_2,DATA$ce_dec_2,DATA$PDR, DATA$CS)
 colnames(d2) = c("group","pe", "PDR","CS")
 
-dec_3 = c(rep("dec_3",nrow(DATA)))
+dec_3 = c(rep("dec_3",nrow(DATA))) 
 d3 = data.frame(dec_3,DATA$ce_dec_3,DATA$PDR, DATA$CS)
 colnames(d3) = c("group","pe", "PDR","CS")
 
@@ -167,43 +170,54 @@ ggplot(dataset, aes(y=PE, x=group,fill =DRIVER))+geom_boxplot(outlier.shape= NA)
 ###################################################################################
 ## Appendix Correlation between demand and resource consumption
 
-DATA = output
+DATAplot = output
 
 library(ggplot2)
-DATA$PDR = as.factor(DATA$PDR)
-DATA$CS_levels[DATA$CS_levels == 0] <- "ALL UNIT-LEVEL COSTS"
-DATA$CS_levels = factor(DATA$CS_levels,levels = c("ALL UNIT-LEVEL COSTS", "LOW","MID","HIGH") )
-ggplot(DATA,aes(fill=CS_levels,y = demand_pattern))+geom_boxplot()+theme_classic()+
+DATAplot$PDR = as.factor(DATAplot$PDR)
+DATAplot$CS[DATAplot$CS == 0] <- "ALL UNIT-LEVEL COSTS"
+DATAplot$CS[DATAplot$CS == 1] <- "SIMPLE HIERARCHY"
+DATAplot$CS[DATAplot$CS == 2] <- "ABC HIERARCHY-THEORY"
+DATAplot$CS[DATAplot$CS == 3] <- "ABC HIERARCHY-EMPIRICISM"
+DATAplot$CS = factor(DATAplot$CS,levels = c("ALL UNIT-LEVEL COSTS", "SIMPLE HIERARCHY","ABC HIERARCHY-THEORY","ABC HIERARCHY-EMPIRICISM") )
+ggplot(DATAplot,aes(factor(CS),ul_fl))+geom_boxplot(aes(fill=CS))+theme_classic()+
   ylab("Pearson correlation between MXQ and RES_CONS_PAT")
 
 
 ##########################################################################################################
 ##EFFECT MATRIX
 
-
+DATA = output
 
 DATA = DATA[which(!is.na(DATA$VB_PATTERN)),]
 
 DATA$Q_VAR = as.character(DATA$Q_VAR)
 
 DATA$Q_VAR[DATA$Q_VAR == "LOW"] <- 1
-DATA$Q_VAR[DATA$Q_VAR == "MID"] <- 2
+#DATA$Q_VAR[DATA$Q_VAR == "MID"] <- 2
 DATA$Q_VAR[DATA$Q_VAR == "HIGH"] <- 3
 
-DATA$VB_PATTERN2 = (DATA$pe_dec_10+DATA$pe_dec_9)/2- (DATA$pe_dec_1+DATA$pe_dec_2)/2
-DATA$CB_PATTERN2 = (DATA$ce_dec_10+DATA$ce_dec_9)/2 - (DATA$ce_dec_1+DATA$ce_dec_2)/2
+#DATA$VB_PATTERN2 = (DATA$pe_dec_10+DATA$pe_dec_9)/2- (DATA$pe_dec_1+DATA$pe_dec_2)/2
+#DATA$CB_PATTERN2 = (DATA$ce_dec_10+DATA$ce_dec_9)/2 - (DATA$ce_dec_1+DATA$ce_dec_2)/2
 
 
 library(apaTables)
-DATA = subset(DATA, PDR == 1)
+DATA = subset(DATA, CS == 2)
 DATA$CS = as.numeric(DATA$CS)
 DATA$PDR = as.numeric(DATA$PDR)
 DATA$ACP = as.numeric(DATA$ACP)
 DATA$Q_VAR = as.numeric(DATA$Q_VAR)
 
-reg = CB_PATTERN2 ~ (ACP + DISP1 + DISP2 + DENS +COR1 +COR2 +Q_VAR+PDR+non_unit_size)^2
-reg = VB_PATTERN ~  non_unit_size + I(non_unit_size*Q_VAR)+I(ACP*non_unit_size)#+I(PDR*non_unit_size)
-reg = VB_PATTERN ~ non_unit_size + PDR + Q_VAR+ACP
+if(DATA$CS[1] == 0){
+  reg = VB_PATTERN ~ DISP1 + DISP2+COR1+COR2+ DENS +Q_VAR+bl_size+ACP+PDR
+  
+}else if(DATA$CS[1] == 1){
+reg = VB_PATTERN ~ DISP1 + DISP2+COR1+COR2+ DENS +Q_VAR+fl_size+ACP+PDR
+}else{
+reg = VB_PATTERN ~ DISP1 + DISP2+DENS +Q_VAR+bl_size+pl_size+fl_size+ACP+PDR#+ul_bl+ul_pl+ul_fl+bl_pl+bl_fl+pl_fl#
+}
+  
+#reg = VB_PATTERN ~  non_unit_size + I(non_unit_size*Q_VAR)+I(ACP*non_unit_size)#+I(PDR*non_unit_size)
+#reg = VB_PATTERN ~ non_unit_size + PDR + Q_VAR+ACP
 
 reg_data = data.frame(lapply(DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
@@ -214,13 +228,44 @@ apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.nu
 
 
 
-
-high = (DATA$pe_dec_10[1]+DATA$pe_dec_9[1])/2
-
-i = 2
-low = (DATA$pe_dec_1[i]+DATA$pe_dec_2[i])/2
+##########################################################################################################################
 
 
+DATA = output
+
+DATA = subset(DATA, CS == 3)
+
+
+mean(DATA$ul_bl)
+sd(DATA$ul_bl)
+
+mean(DATA$ul_pl)
+sd(DATA$ul_pl)
+
+mean(DATA$ul_fl)
+sd(DATA$ul_fl)
 
 
 
+mean(DATA$bl_pl)
+sd(DATA$bl_pl)
+
+mean(DATA$bl_fl)
+sd(DATA$bl_fl)
+
+
+
+mean(DATA$pl_fl)
+sd(DATA$pl_fl)
+
+mean(DATA$VB_PATTERN)
+
+
+
+#######################################################################################################################
+DATA = output
+DATA = subset(DATA, CS == 2)
+mean(DATA$ul_size)/50
+mean(DATA$bl_size)/50
+mean(DATA$pl_size)/50
+mean(DATA$fl_size)/50

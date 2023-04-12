@@ -8,14 +8,14 @@
 NUMB_FIRMS = 200
 NUMB_PRO = 50
 NUMB_RES = 50
-DISP1 = c(2,5,10)
+DISP1 = c(2,10)
 Q_VAR = c("LOW","MID","HIGH")
 DENS = c(-1)
 DISP2 = c(-1)
 COR1 = c(-1)
 COR2 = c(-1)
 
-CS = c(1,0)
+CS = c(3,2,1,0)
 
 
 
@@ -37,8 +37,8 @@ colnames(FIRM) = c('randID',"FirmID",'NUMB_PRO','NUMB_RES',"DISP1", "DISP2", "DE
 ## ====================================== INPUT FOR COSTING SYSTEM GENERATION ==================================================
 COSTING_SYSTEM = list()
 
-CP = c(1,5,10,15,20,25,30,35,40,45,50)
-CP_HEURISTIC = c(0,1,2,3)
+CP = c(1,5,10,15,20,25,30)
+CP_HEURISTIC = c(1)
 CD_HEURISTIC = c(1,0)
 
 COSTING_SYSTEM = expand.grid(CP,CP_HEURISTIC,CD_HEURISTIC)
@@ -70,16 +70,27 @@ for(i in 1:nrow(FIRM)){
 
   
   MXQ = .gen_Demand_Anand(FIRM$Q_VAR[i],FIRM$NUMB_PRO[i])
+  cost_hierarchy = .gen_cost_hierarchy()
+  
 
   if(FIRM$CS[i] == 0){
     
-    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Anand(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ)
+    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Anand(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy)
     
   }else if(FIRM$CS[i] == 1){
     
-    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Anand_CS(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ)
+    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Anand_CS(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy)
+    
+  }else if(FIRM$CS[i] == 2){
+    
+    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Anand_CH(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy)
+    
+  }else if(FIRM$CS[i] == 3){
+    
+    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Anand_CH2(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy)
     
   }
+
   
   
   
@@ -100,6 +111,7 @@ for(i in 1:nrow(FIRM)){
   DATA_list$RES_CONS_PATp[[i]] = RES_CONS_PAT_list$RES_CONS_PATp
   DATA_list$RES_CONS_PAT[[i]] = RES_CONS_PAT_list$RES_CONS_PAT
   DATA_list$RES_CONS_PAT_TOTAL[[i]] = RES_CONS_PAT_list$RES_CONS_PAT_TOTAL
+  DATA_list$cost_hierarchy[[i]] = RES_CONS_PAT_list$cost_hierarchy
   DATA_list$RCC[[i]] = RCC_list$RCC
   print(i)
   
@@ -132,6 +144,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       RES_CONS_PATp = DATA_list$RES_CONS_PATp[[DATA$randID[i]]]
       RES_CONS_PAT = DATA_list$RES_CONS_PAT[[DATA$randID[i]]]
       RES_CONS_PAT_TOTAL = DATA_list$RES_CONS_PAT_TOTAL[[DATA$randID[i]]]
+      cost_hierarchy = DATA_list$cost_hierarchy[[DATA$randID[i]]]
       RCC = DATA_list$RCC[[DATA$randID[DATA$randID[i]]]]
       MXQ = t(FIRM[which(DATA$randID[i] == FIRM$randID),63:112])
       
@@ -167,7 +180,10 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       Q_VAR = FIRM[which(FIRM$randID == DATA$randID[i]),]$Q_VAR
       CS = FIRM[which(FIRM$randID == DATA$randID[i]),]$CS
       non_unit_size = FIRM[which(FIRM$randID == DATA$randID[i]),]$non_unit_size
-      if(CS ==0){CS_levels = 0}else if(non_unit_size<0.33){CS_levels = "LOW"}else if(non_unit_size>0.46){CS_levels = "HIGH"}else{CS_levels = "MID"}
+      if(CS ==0){CS_levels = 0}else{CS_levels=1}
+      #else if(non_unit_size<0.33){CS_levels = "LOW"}else if(non_unit_size>0.46){CS_levels = "HIGH"}else{CS_levels = "MID"}
+      
+      
       
       MAPE = mean(abs(PCB-PCH)/PCB)
       PE = PCH-PCB
@@ -229,11 +245,11 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       ##CB_PATTERN - pattern for rank-ordered products by complexity
       
      
-      #entropy = calc_complexity(RES_CONS_PAT_TOTAL) #entropy complexity (ElMaraghy et al., 2013)
-      #intra = calc_intra(RES_CONS_PATp) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
-      inter = calc_inter(RES_CONS_PAT) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
+      #entropy = calc_complexity(RES_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
+      #intra = calc_intra(RES_CONS_PAT_TOTAL) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
+      inter = calc_inter(RES_CONS_PATp) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
       #inter = intra+inter
-      
+      #inter = intra
       
       
 
@@ -250,12 +266,20 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       
  
       CB_PATTERN = (ce_dec_10+ce_dec_9)/2- (ce_dec_1+ce_dec_2)/2
-      
-      
+  
       #other measures
+      ul_cost = sum(RCC[cost_hierarchy$ul])/1000000
+      bl_cost = sum(RCC[cost_hierarchy$bl])/1000000
+      pl_cost = sum(RCC[cost_hierarchy$pl])/1000000
+      fl_cost = sum(RCC[cost_hierarchy$fl])/1000000
+      ul_size = length(cost_hierarchy$ul)
+      bl_size = length(cost_hierarchy$bl)
+      pl_size = length(cost_hierarchy$pl)
+      fl_size = length(cost_hierarchy$fl)
       
-      demand_cor = cor(rowMeans(RES_CONS_PATp),MXQ)
+      demand_cor = mean(cor(MXQ,RES_CONS_PATp))
       cost_cor = cor((PCB/sum(PCB)), (MXQ/sum(MXQ)))
+      inter_cor = cor(inter, pe)
       
 #Data writing
 
@@ -289,13 +313,20 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
                            cost_cor,
                            BE_AB,
                            pe_dec_1,pe_dec_2,pe_dec_3,pe_dec_4,pe_dec_5,pe_dec_6,pe_dec_7,pe_dec_8,pe_dec_9,pe_dec_10,
-                           ce_dec_1,ce_dec_2,ce_dec_3,ce_dec_4,ce_dec_5,ce_dec_6,ce_dec_7,ce_dec_8,ce_dec_9,ce_dec_10)
+                           ce_dec_1,ce_dec_2,ce_dec_3,ce_dec_4,ce_dec_5,ce_dec_6,ce_dec_7,ce_dec_8,ce_dec_9,ce_dec_10,
+                           inter,
+                           inter_cor,
+                           ul_cost,bl_cost,pl_cost,fl_cost,
+                           ul_size,bl_size,pl_size,fl_size,
+                           cost_hierarchy$ul_bl,cost_hierarchy$ul_pl,cost_hierarchy$ul_fl,cost_hierarchy$bl_pl,cost_hierarchy$bl_fl,cost_hierarchy$pl_fl)
        
       colnames(preDATA) = c('randID','FirmID','CostSysID','PACP','ACP','PDR',"DISP1","DISP2","DENS","COR1","COR2","Q_VAR","CS","non_unit_size","CS_levels",
                             c(paste0("PCB_", 0:49)),c(paste0("PCH_", 0:49)),
                             "MAPE",c(paste0("PE_", 0:49)),"UC","OC","UC5","OC5",c(paste0("MXQ_", 0:49)),"VB_PATTERN","CB_PATTERN",'demand_pattern','cost_pattern',
                             "BE_AB",
-                            c(paste0("pe_dec_", 1:10)),c(paste0("ce_dec_", 1:10)))
+                            c(paste0("pe_dec_", 1:10)),c(paste0("ce_dec_", 1:10)),"inter","inter_cor","ul_cost","bl_cost","pl_cost","fl_cost",
+                            "ul_size","bl_size","pl_size","fl_size",
+                            "ul_bl","ul_pl","ul_fl","bl_pl","bl_fl","pl_fl")
       
 
 
@@ -303,7 +334,6 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
 
 preDATA    
   }
-
 
 output_link = paste("output/CSD_",format(Sys.time(),"%Y-%m-%d-%H%M"),".csv", sep = "")
 write.csv(output, file = output_link)
