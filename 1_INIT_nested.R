@@ -1,7 +1,7 @@
 
 ######Nested Design following ABL 2019######
 
-#moin 
+
 
 ## ====================================== INPUT FOR FIRM GENERATION ==================================================
 
@@ -245,8 +245,8 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       ##CB_PATTERN - pattern for rank-ordered products by complexity
       
      
-      #entropy = calc_complexity(RES_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
-      #intra = calc_intra(RES_CONS_PAT_TOTAL) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
+      entropy = calc_complexity(RES_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
+      intra = calc_intra(RES_CONS_PAT_TOTAL) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
       inter = calc_inter(RES_CONS_PATp) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
       #inter = intra+inter
       #inter = intra
@@ -314,6 +314,8 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
                            BE_AB,
                            pe_dec_1,pe_dec_2,pe_dec_3,pe_dec_4,pe_dec_5,pe_dec_6,pe_dec_7,pe_dec_8,pe_dec_9,pe_dec_10,
                            ce_dec_1,ce_dec_2,ce_dec_3,ce_dec_4,ce_dec_5,ce_dec_6,ce_dec_7,ce_dec_8,ce_dec_9,ce_dec_10,
+                           entropy,
+                           intra,
                            inter,
                            inter_cor,
                            ul_cost,bl_cost,pl_cost,fl_cost,
@@ -324,7 +326,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
                             c(paste0("PCB_", 0:49)),c(paste0("PCH_", 0:49)),
                             "MAPE",c(paste0("PE_", 0:49)),"UC","OC","UC5","OC5",c(paste0("MXQ_", 0:49)),"VB_PATTERN","CB_PATTERN",'demand_pattern','cost_pattern',
                             "BE_AB",
-                            c(paste0("pe_dec_", 1:10)),c(paste0("ce_dec_", 1:10)),"inter","inter_cor","ul_cost","bl_cost","pl_cost","fl_cost",
+                            c(paste0("pe_dec_", 1:10)),c(paste0("ce_dec_", 1:10)),"entropy","intra","inter","inter_cor","ul_cost","bl_cost","pl_cost","fl_cost",
                             "ul_size","bl_size","pl_size","fl_size",
                             "ul_bl","ul_pl","ul_fl","bl_pl","bl_fl","pl_fl")
       
