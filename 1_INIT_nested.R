@@ -8,14 +8,14 @@
 NUMB_FIRMS = 200
 NUMB_PRO = 50
 NUMB_RES = 50
-DISP1 = c(2,10)
-Q_VAR = c("LOW","MID","HIGH")
+DISP1 = c(10)
+Q_VAR = c("MID")
 DENS = c(-1)
 DISP2 = c(-1)
 COR1 = c(-1)
 COR2 = c(-1)
 
-CS = c(3,2,1,0)
+CS = c(3)
 
 
 
@@ -37,9 +37,9 @@ colnames(FIRM) = c('randID',"FirmID",'NUMB_PRO','NUMB_RES',"DISP1", "DISP2", "DE
 ## ====================================== INPUT FOR COSTING SYSTEM GENERATION ==================================================
 COSTING_SYSTEM = list()
 
-CP = c(1,5,10,15,20,25,30)
-CP_HEURISTIC = c(1)
-CD_HEURISTIC = c(1,0)
+CP = c(1,3,6,10,15,20)#as in Anand et al. (2017)
+CP_HEURISTIC = c(2)#as in Anand et al. (2017)
+CD_HEURISTIC = c(0)#as in Anand et al. (2017)
 
 COSTING_SYSTEM = expand.grid(CP,CP_HEURISTIC,CD_HEURISTIC)
 CostSysID = c(1:nrow(COSTING_SYSTEM))
