@@ -1,101 +1,77 @@
 
-DATA = read.csv("data/EXTENSION.csv", sep= ",")
 
 DATA = output
 
 DATA = DATA[which(!is.na(DATA$MAPE)),]
 
-DATA$CS_levels = DATA$CS
+
 
 
 dec_1 = c(rep("dec_1",nrow(DATA)))
-d1 = data.frame(dec_1,DATA$pe_dec_1,DATA$PDR, DATA$CS_levels)
-colnames(d1) = c("group","pe", "PDR","CS")
+d1 = data.frame(dec_1,DATA$pe_dec_1)
+colnames(d1) = c("group","pe")
 
 dec_2 = c(rep("dec_2",nrow(DATA)))
-d2 = data.frame(dec_2,DATA$pe_dec_2,DATA$PDR, DATA$CS_levels)
-colnames(d2) = c("group","pe", "PDR","CS")
+d2 = data.frame(dec_2,DATA$pe_dec_2)
+colnames(d2) = c("group","pe")
 
 dec_3 = c(rep("dec_3",nrow(DATA)))
-d3 = data.frame(dec_3,DATA$pe_dec_3,DATA$PDR, DATA$CS_levels)
-colnames(d3) = c("group","pe", "PDR","CS")
+d3 = data.frame(dec_3,DATA$pe_dec_3)
+colnames(d3) = c("group","pe")
 
 dec_4 = c(rep("dec_4",nrow(DATA)))
-d4 = data.frame(dec_4,DATA$pe_dec_4,DATA$PDR, DATA$CS_levels)
-colnames(d4) = c("group","pe", "PDR","CS")
+d4 = data.frame(dec_4,DATA$pe_dec_4)
+colnames(d4) = c("group","pe")
 
 dec_5 = c(rep("dec_5",nrow(DATA)))
-d5 = data.frame(dec_5,DATA$pe_dec_5,DATA$PDR, DATA$CS_levels)
-colnames(d5) = c("group","pe", "PDR","CS")
+d5 = data.frame(dec_5,DATA$pe_dec_5)
+colnames(d5) = c("group","pe")
 
 dec_6 = c(rep("dec_6",nrow(DATA)))
-d6 = data.frame(dec_6,DATA$pe_dec_6,DATA$PDR, DATA$CS_levels)
-colnames(d6) = c("group","pe", "PDR","CS")
+d6 = data.frame(dec_6,DATA$pe_dec_6)
+colnames(d6) = c("group","pe")
 
 dec_7 = c(rep("dec_7",nrow(DATA)))
-d7 = data.frame(dec_7,DATA$pe_dec_7,DATA$PDR, DATA$CS_levels)
-colnames(d7) = c("group","pe", "PDR","CS")
+d7 = data.frame(dec_7,DATA$pe_dec_7)
+colnames(d7) = c("group","pe")
 
 dec_8 = c(rep("dec_8",nrow(DATA)))
-d8 = data.frame(dec_8,DATA$pe_dec_8,DATA$PDR, DATA$CS_levels)
-colnames(d8) = c("group","pe", "PDR","CS")
+d8 = data.frame(dec_8,DATA$pe_dec_8)
+colnames(d8) = c("group","pe")
 
 dec_9 = c(rep("dec_9",nrow(DATA)))
-d9 = data.frame(dec_9,DATA$pe_dec_9,DATA$PDR, DATA$CS_levels)
-colnames(d9) = c("group","pe", "PDR","CS")
+d9 = data.frame(dec_9,DATA$pe_dec_9)
+colnames(d9) = c("group","pe")
 
 dec_10 = c(rep("dec_10",nrow(DATA)))
-d10 = data.frame(dec_10,DATA$pe_dec_10,DATA$PDR, DATA$CS_levels)
-colnames(d10) = c("group","pe", "PDR","CS")
+d10 = data.frame(dec_10,DATA$pe_dec_10)
+colnames(d10) = c("group","pe")
 
 
 
 dataset = rbind(d1,d2,d3,d4,d5,d6,d7,d8,d9,d10)
 
 
-dataset$PDR[dataset$PDR == 1] <- "VOLUME"
-dataset$PDR[dataset$PDR == 0] <- "ACTIVITY"
-dataset$CS[dataset$CS == 0] <- "ALL UNIT-LEVEL COSTS"
-dataset$CS[dataset$CS == 1] <- "SIMPLE COST HIERARCHY"
-dataset$CS[dataset$CS == 2] <- "THEORETICAL ABC COST HIERARCHY"
-dataset$CS[dataset$CS == 3] <- "EMPIRICAL ABC COST HIERARCHY"
 
-colnames(dataset) = c("group","PE", "DRIVER","CS")
+colnames(dataset) = c("group","PE")
 
 dataset$group = factor(dataset$group, levels = c("dec_1","dec_2","dec_3","dec_4","dec_5","dec_6","dec_7","dec_8","dec_9","dec_10"))
-dataset$CS = factor(dataset$CS, levels = c("ALL UNIT-LEVEL COSTS", "SIMPLE COST HIERARCHY","THEORETICAL ABC COST HIERARCHY","EMPIRICAL ABC COST HIERARCHY"))
 library(ggplot2)
 
 
 
 #1. Testing in unchanged model
-ggplot(dataset, aes(y=PE, x=group, fill = DRIVER))+geom_boxplot(outlier.shape= NA)+ylim(-1,1)+
+ggplot(dataset, aes(y=PE, x=group))+geom_boxplot(outlier.shape= NA)+
   theme_classic()+geom_hline(yintercept = 0)+xlab("RANK-ORDERED PRODUCTS - Low to High Volume")+
   theme(legend.position = "bottom", axis.text.x = element_blank())
 
-dataset = subset(dataset, CS == "THEORETICAL ABC COST HIERARCHY" | CS == "EMPIRICAL ABC COST HIERARCHY")
 
-#2. Extension with four levels of cost structure and two types of drivers 
-ggplot(dataset, aes(y=PE, x=group,fill =DRIVER))+geom_boxplot(outlier.shape= NA)+ylim(-1,1)+
-  theme_classic()+geom_hline(yintercept = 0)+facet_grid(cols = vars(CS))+xlab("RANK-ORDERED PRODUCTS - Low to High Volume")+
-  theme(legend.position = "bottom", axis.text.x = element_blank())
-        
-
-
-#3. Mean for line plot 
-
-data = aggregate(.~group+DRIVER+CS, dataset, median)
-dataset$group = factor(dataset$group, levels = c("dec_1","dec_2","dec_3","dec_4","dec_5","dec_6","dec_7","dec_8","dec_9","dec_10"))
-
-data$DRIVER = as.factor(data$DRIVER)
-data$CS = as.factor(data$CS)
-
-ggplot(data, aes(y=PE, x=group, group = DRIVER))+geom_line(aes(col = DRIVER))+geom_point(aes(col = DRIVER))+ylim(-0.5,0.5)+
-  theme_classic()+geom_hline(yintercept = 0)+facet_grid(cols = vars(CS))+xlab("RANK-ORDERED PRODUCTS - Low to High Volume")+
-  theme(legend.position = "bottom", axis.text.x = element_blank())
 
 
 ########################################################################################
+
+
+
 
 DATA = output
 
@@ -103,63 +79,133 @@ DATA = DATA[which(!is.na(DATA$MAPE)),]
 
 
 
+
 dec_1 = c(rep("dec_1",nrow(DATA)))
-d1 = data.frame(dec_1,DATA$ce_dec_1,DATA$PDR, DATA$CS)
-colnames(d1) = c("group","pe", "PDR","CS")
+d1 = data.frame(dec_1,DATA$ce_dec_1)
+colnames(d1) = c("group","pe")
 
 dec_2 = c(rep("dec_2",nrow(DATA)))
-d2 = data.frame(dec_2,DATA$ce_dec_2,DATA$PDR, DATA$CS)
-colnames(d2) = c("group","pe", "PDR","CS")
+d2 = data.frame(dec_2,DATA$ce_dec_2)
+colnames(d2) = c("group","pe")
 
-dec_3 = c(rep("dec_3",nrow(DATA))) 
-d3 = data.frame(dec_3,DATA$ce_dec_3,DATA$PDR, DATA$CS)
-colnames(d3) = c("group","pe", "PDR","CS")
+dec_3 = c(rep("dec_3",nrow(DATA)))
+d3 = data.frame(dec_3,DATA$ce_dec_3)
+colnames(d3) = c("group","pe")
 
 dec_4 = c(rep("dec_4",nrow(DATA)))
-d4 = data.frame(dec_4,DATA$ce_dec_4,DATA$PDR, DATA$CS)
-colnames(d4) = c("group","pe", "PDR","CS")
+d4 = data.frame(dec_4,DATA$ce_dec_4)
+colnames(d4) = c("group","pe")
 
 dec_5 = c(rep("dec_5",nrow(DATA)))
-d5 = data.frame(dec_5,DATA$ce_dec_5,DATA$PDR, DATA$CS)
-colnames(d5) = c("group","pe", "PDR","CS")
+d5 = data.frame(dec_5,DATA$ce_dec_5)
+colnames(d5) = c("group","pe")
 
 dec_6 = c(rep("dec_6",nrow(DATA)))
-d6 = data.frame(dec_6,DATA$ce_dec_6,DATA$PDR, DATA$CS)
-colnames(d6) = c("group","pe", "PDR","CS")
+d6 = data.frame(dec_6,DATA$ce_dec_6)
+colnames(d6) = c("group","pe")
 
 dec_7 = c(rep("dec_7",nrow(DATA)))
-d7 = data.frame(dec_7,DATA$ce_dec_7,DATA$PDR, DATA$CS)
-colnames(d7) = c("group","pe", "PDR","CS")
+d7 = data.frame(dec_7,DATA$ce_dec_7)
+colnames(d7) = c("group","pe")
 
 dec_8 = c(rep("dec_8",nrow(DATA)))
-d8 = data.frame(dec_8,DATA$ce_dec_8,DATA$PDR, DATA$CS)
-colnames(d8) = c("group","pe", "PDR","CS")
+d8 = data.frame(dec_8,DATA$ce_dec_8)
+colnames(d8) = c("group","pe")
 
 dec_9 = c(rep("dec_9",nrow(DATA)))
-d9 = data.frame(dec_9,DATA$ce_dec_9,DATA$PDR, DATA$CS)
-colnames(d9) = c("group","pe", "PDR","CS")
+d9 = data.frame(dec_9,DATA$ce_dec_9)
+colnames(d9) = c("group","pe")
 
 dec_10 = c(rep("dec_10",nrow(DATA)))
-d10 = data.frame(dec_10,DATA$ce_dec_10,DATA$PDR, DATA$CS)
-colnames(d10) = c("group","pe", "PDR","CS")
+d10 = data.frame(dec_10,DATA$ce_dec_10)
+colnames(d10) = c("group","pe")
 
 
 
 dataset = rbind(d1,d2,d3,d4,d5,d6,d7,d8,d9,d10)
 
 
-dataset$PDR[dataset$PDR == 1] <- "VOLUME"
-dataset$PDR[dataset$PDR == 0] <- "ACTIVITY"
-dataset$CS[dataset$CS == 0] <- "ALL UNIT-LEVEL COSTS"
-dataset$CS[dataset$CS == 1] <- "WITH NON-UNIT-LEVEL COSTS"
 
-colnames(dataset) = c("group","PE", "DRIVER","CS")
-
+colnames(dataset) = c("group","PE")
 
 dataset$group = factor(dataset$group, levels = c("dec_1","dec_2","dec_3","dec_4","dec_5","dec_6","dec_7","dec_8","dec_9","dec_10"))
+library(ggplot2)
 
-ggplot(dataset, aes(y=PE, x=group,fill =DRIVER))+geom_boxplot(outlier.shape= NA)+ylim(-1,1)+
-  theme_classic()+geom_hline(yintercept = 0)+facet_grid(cols = vars(CS))+xlab("RANK-ORDERED PRODUCTS - High to Low Complexity")+
+
+
+#1. Testing in unchanged model
+ggplot(dataset, aes(y=PE, x=group))+geom_boxplot(outlier.shape= NA)+
+  theme_classic()+geom_hline(yintercept = 0)+xlab("RANK-ORDERED PRODUCTS - High to Low Complexity")+
+  theme(legend.position = "bottom", axis.text.x = element_blank())
+
+
+
+###################################################################################
+
+
+DATA = output
+
+DATA = DATA[which(!is.na(DATA$MAPE)),]
+
+
+
+
+dec_1 = c(rep("dec_1",nrow(DATA)))
+d1 = data.frame(dec_1,DATA$pcb_dec_1)
+colnames(d1) = c("group","pe")
+
+dec_2 = c(rep("dec_2",nrow(DATA)))
+d2 = data.frame(dec_2,DATA$pcb_dec_2)
+colnames(d2) = c("group","pe")
+
+dec_3 = c(rep("dec_3",nrow(DATA)))
+d3 = data.frame(dec_3,DATA$pcb_dec_3)
+colnames(d3) = c("group","pe")
+
+dec_4 = c(rep("dec_4",nrow(DATA)))
+d4 = data.frame(dec_4,DATA$pcb_dec_4)
+colnames(d4) = c("group","pe")
+
+dec_5 = c(rep("dec_5",nrow(DATA)))
+d5 = data.frame(dec_5,DATA$pcb_dec_5)
+colnames(d5) = c("group","pe")
+
+dec_6 = c(rep("dec_6",nrow(DATA)))
+d6 = data.frame(dec_6,DATA$pcb_dec_6)
+colnames(d6) = c("group","pe")
+
+dec_7 = c(rep("dec_7",nrow(DATA)))
+d7 = data.frame(dec_7,DATA$pcb_dec_7)
+colnames(d7) = c("group","pe")
+
+dec_8 = c(rep("dec_8",nrow(DATA)))
+d8 = data.frame(dec_8,DATA$pcb_dec_8)
+colnames(d8) = c("group","pe")
+
+dec_9 = c(rep("dec_9",nrow(DATA)))
+d9 = data.frame(dec_9,DATA$pcb_dec_9)
+colnames(d9) = c("group","pe")
+
+dec_10 = c(rep("dec_10",nrow(DATA)))
+d10 = data.frame(dec_10,DATA$pcb_dec_10)
+colnames(d10) = c("group","pe")
+
+
+
+dataset = rbind(d1,d2,d3,d4,d5,d6,d7,d8,d9,d10)
+
+
+
+colnames(dataset) = c("group","PE")
+
+dataset$group = factor(dataset$group, levels = c("dec_1","dec_2","dec_3","dec_4","dec_5","dec_6","dec_7","dec_8","dec_9","dec_10"))
+library(ggplot2)
+
+
+
+#1. Testing in unchanged model
+ggplot(dataset, aes(y=PE, x=group))+geom_boxplot(outlier.shape= NA)+
+  theme_classic()+geom_hline(yintercept = 0)+xlab("RANK-ORDERED PRODUCTS - Low to High Costs")+
   theme(legend.position = "bottom", axis.text.x = element_blank())
 
 
@@ -167,7 +213,20 @@ ggplot(dataset, aes(y=PE, x=group,fill =DRIVER))+geom_boxplot(outlier.shape= NA)
 
 
 
-###################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Appendix Correlation between demand and resource consumption
 
 DATAplot = output

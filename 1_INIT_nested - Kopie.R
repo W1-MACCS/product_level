@@ -6,12 +6,12 @@
 ## ====================================== INPUT FOR FIRM GENERATION ==================================================
 
 NUMB_FIRMS = 200
-NUMB_PRO = 50
+NUMB_PRO = 10
 NUMB_RES = 50
 DISP1 = c(10)
-Q_VAR = c("MID")
-DENS = c(-1)
-DISP2 = c(-1)
+Q_VAR = c("LOW","MID","HIGH")
+DENS = c(0.25,0.5,0.75)
+DISP2 = c(0.25,0.5,0.75)
 COR1 = c(-1)
 COR2 = c(-1)
 
@@ -106,8 +106,8 @@ for(i in 1:nrow(FIRM)){
   FIRM$COR2[i] = RES_CONS_PAT_list$COR2
   FIRM$non_unit_size[i] = RES_CONS_PAT_list$non_unit_size
   FIRM$DISP2[i] = RCC_list$DISP2_draw
-  FIRM[i,13:62] = PCB
-  FIRM[i,63:112] = MXQ
+  FIRM[i,13:22] = PCB
+  FIRM[i,23:32] = MXQ
 
   
   DATA_list$RES_CONS_PATp[[i]] = RES_CONS_PAT_list$RES_CONS_PATp
@@ -131,7 +131,6 @@ output = data.frame()
 preDATA = data.frame()
 
 
-
 output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dopar% { #dopar
 #for(i in 1:nrow(DATA)){
     
@@ -148,7 +147,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       RES_CONS_PAT_TOTAL = DATA_list$RES_CONS_PAT_TOTAL[[DATA$randID[i]]]
       cost_hierarchy = DATA_list$cost_hierarchy[[DATA$randID[i]]]
       RCC = DATA_list$RCC[[DATA$randID[DATA$randID[i]]]]
-      MXQ = t(FIRM[which(DATA$randID[i] == FIRM$randID),63:112])
+      MXQ = t(FIRM[which(DATA$randID[i] == FIRM$randID),23:32])
       
       NUMB_PRO =nrow(RES_CONS_PATp)
 
@@ -172,8 +171,8 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       
       PCH =  ACT_CONS_PAT %*% CostingSystem_list$ACP
       #PCB = RES_CONS_PATp %*% RCC
-      PCB = t(FIRM[which(FIRM$randID==DATA$randID[i]),13:62])
-      MXQ = t(FIRM[which(FIRM$randID==DATA$randID[i]),63:112])
+      PCB = t(FIRM[which(FIRM$randID==DATA$randID[i]),13:22])
+      MXQ = t(FIRM[which(FIRM$randID==DATA$randID[i]),23:32])
       DENS = FIRM[which(FIRM$randID == DATA$randID[i]),]$DENS
       COR1 = FIRM[which(FIRM$randID == DATA$randID[i]),]$COR1
       COR2 = FIRM[which(FIRM$randID == DATA$randID[i]),]$COR2
@@ -196,139 +195,73 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       UC5 = sum((PCB-PCH)/PCB>0.05)/NUMB_PRO
       OC5 = sum((PCB-PCH)/PCB< -0.05)/NUMB_PRO
       
-      BE_AB =  UC5-OC5
+      
       
       pcb = PCB/MXQ
       pch = PCH/MXQ
       pe = (pch-pcb)/pcb
       error = pch-pcb
-      
-      pe = MXQ
-      
-      #######
-      pcb_dec_1 =  mean(pe[sort(pcb,index.return = TRUE)$ix[1:5]])#percentage error for lowest volume products
-      pcb_dec_2 =  mean(pe[sort(pcb,index.return = TRUE)$ix[6:10]])
-      pcb_dec_3 =  mean(pe[sort(pcb,index.return = TRUE)$ix[11:15]])
-      pcb_dec_4 =  mean(pe[sort(pcb,index.return = TRUE)$ix[16:20]])
-      pcb_dec_5 =  mean(pe[sort(pcb,index.return = TRUE)$ix[21:25]])
-      pcb_dec_6 =  mean(pe[sort(pcb,index.return = TRUE)$ix[26:30]])
-      pcb_dec_7 =  mean(pe[sort(pcb,index.return = TRUE)$ix[31:35]])
-      pcb_dec_8 =  mean(pe[sort(pcb,index.return = TRUE)$ix[36:40]])
-      pcb_dec_9 =  mean(pe[sort(pcb,index.return = TRUE)$ix[41:45]])
-      pcb_dec_10 =  mean(pe[sort(pcb,index.return = TRUE)$ix[46:50]])#percentage error for highest volume products
+    
+      UC5 = sum(pe>0.05)
+      OC5 = sum(pe< -0.05)
+      BE_AB =  UC5-OC5
       
       
+      entropy = calc_entropy(RES_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
+      intra = calc_intra(RES_CONS_PAT) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
+      inter = calc_inter(RES_CONS_PAT) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
+      nonzero_cons = calc_nonzero_cons(RES_CONS_PAT)
+      complexity = calc_complexity(RES_CONS_PAT)
+      
+      PCB_rank = rank(PCB,ties.method = "random")
+      pcb_rank = rank(pcb,ties.method = "random")
+      PCH_rank = rank(PCH,ties.method = "random")
+      pch_rank = rank(pch,ties.method = "random")
+      MXQ_rank = rank(MXQ,ties.method = "random")
+      intra_rank = rank(intra,ties.method = "random")
+      inter_rank = rank(inter,ties.method = "random")
+      entropy_rank = rank(entropy,ties.method = "random")
+      nonzero_cons_rank = rank(nonzero_cons,ties.method = "random")
+      complexity_rank = rank(complexity,ties.method = "random")
+      
+      #data_logging
+      PRODUCT = c(1:NUMB_PRO)
+      FIRM_ENV = c()
+      COST_SYS = c()
+      PACP_out = c()
+      ACP_out = c()
+      PDR_out = c()
+      DISP1_out = c()
+      DISP2_out = c()
+      DENS_out = c()
+      COR1_out = c()
+      COR2_out = c()
+      Q_VAR_out = c()
+      BE_AB_out = c()
       
       
+      FIRM_ENV[PRODUCT] = rand_id
+      COST_SYS[PRODUCT] = costsysid
+      PACP_out[PRODUCT] = pacp
+      ACP_out[PRODUCT] = acp
+      PDR_out[PRODUCT] = pdr
+      DISP1_out[PRODUCT] = DISP1
+      DISP2_out[PRODUCT] = DISP2
+      DENS_out[PRODUCT] = DENS
+      COR1_out[PRODUCT] = COR1
+      COR2_out[PRODUCT] = COR2
+      Q_VAR_out[PRODUCT] = Q_VAR
+      BE_AB_out[PRODUCT] = BE_AB
       
+      browser()
+      preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,PACP_out,ACP_out,PDR_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,
+                           MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,pcb,pcb_rank,pch,pch_rank,pe,error,inter,inter_rank,intra,intra_rank,entropy,entropy_rank,
+                           nonzero_cons,nonzero_cons_rank,complexity,complexity_rank,BE_AB_out) 
       
+      colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','PACP','ACP','PDR','DISP1','DISP2','DENS','COR1','COR2','Q_VAR',
+                            'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','pcb','pcb_rank','pch','pch_rank','pe','error','inter','inter_rank','intra','intra_rank',
+                            'entropy','entropy_rank','nonzero_cons','nonzero_cons_rank','complexity','complexity_rank',"BE_AB")
       
-      ###VB_PATTERN -pattern for rank-ordered products by volume
-      
-      high_volume_p = sort(MXQ,index.return = TRUE)$ix[37:50]
-      low_volume_p = sort(MXQ,index.return = TRUE)$ix[1:13]
-      
-      pe_high_volume_p = mean(pe[high_volume_p])
-      pe_low_volume_p = mean(pe[low_volume_p])
-      
-      count_high_volume_p = sum(pe[high_volume_p]>0.05)/length(pe[high_volume_p])
-      count_low_volume_p = sum(pe[low_volume_p]< -0.05)/length(pe[low_volume_p])
-      
-      
-      pe_dec_1 =  mean(pe[sort(MXQ,index.return = TRUE)$ix[1:5]])#percentage error for lowest volume products
-      pe_dec_2 =  mean(pe[sort(MXQ,index.return = TRUE)$ix[6:10]])
-      pe_dec_3 =  mean(pe[sort(MXQ,index.return = TRUE)$ix[11:15]])
-      pe_dec_4 =  mean(pe[sort(MXQ,index.return = TRUE)$ix[16:20]])
-      pe_dec_5 =  mean(pe[sort(MXQ,index.return = TRUE)$ix[21:25]])
-      pe_dec_6 =  mean(pe[sort(MXQ,index.return = TRUE)$ix[26:30]])
-      pe_dec_7 =  mean(pe[sort(MXQ,index.return = TRUE)$ix[31:35]])
-      pe_dec_8 =  mean(pe[sort(MXQ,index.return = TRUE)$ix[36:40]])
-      pe_dec_9 =  mean(pe[sort(MXQ,index.return = TRUE)$ix[41:45]])
-      pe_dec_10 =  mean(pe[sort(MXQ,index.return = TRUE)$ix[46:50]])#percentage error for highest volume products
-      
-      VB_PATTERN = (pe_dec_10+pe_dec_9)/2- (pe_dec_1+pe_dec_2)/2
-      
-      ##CB_PATTERN - pattern for rank-ordered products by complexity
-      
-     
-      entropy = calc_complexity(RES_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
-      intra = calc_intra(RES_CONS_PAT_TOTAL) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
-      inter = calc_inter(RES_CONS_PATp) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
-      nonzero_cons = calc_nonzero_cons(RES_CONS_PATp)
-      #inter = intra+inter
-      inter = nonzero_cons
-      
-      
-
-      ce_dec_1 =  mean(pe[sort(inter,decreasing = TRUE,index.return = TRUE)$ix[1:5]])#percentage error for highest-complexity products 
-      ce_dec_2 =  mean(pe[sort(inter,decreasing = TRUE,index.return = TRUE)$ix[6:10]])
-      ce_dec_3 =  mean(pe[sort(inter,decreasing = TRUE,index.return = TRUE)$ix[11:15]])
-      ce_dec_4 =  mean(pe[sort(inter,decreasing = TRUE,index.return = TRUE)$ix[16:20]])
-      ce_dec_5 =  mean(pe[sort(inter,decreasing = TRUE,index.return = TRUE)$ix[21:25]])
-      ce_dec_6 =  mean(pe[sort(inter,decreasing = TRUE,index.return = TRUE)$ix[26:30]])
-      ce_dec_7 =  mean(pe[sort(inter,decreasing = TRUE,index.return = TRUE)$ix[31:35]])
-      ce_dec_8 =  mean(pe[sort(inter,decreasing = TRUE,index.return = TRUE)$ix[36:40]])
-      ce_dec_9 =  mean(pe[sort(inter,decreasing = TRUE,index.return = TRUE)$ix[41:45]])
-      ce_dec_10 =  mean(pe[sort(inter,decreasing = TRUE,index.return = TRUE)$ix[46:50]])#percentage error for lowest-complexity products
-      
-      
-      CB_PATTERN = (ce_dec_10+ce_dec_9)/2- (ce_dec_1+ce_dec_2)/2
-      
-
-      #other measures
-      ul_cost = sum(RCC[cost_hierarchy$ul])/1000000
-      bl_cost = sum(RCC[cost_hierarchy$bl])/1000000
-      pl_cost = sum(RCC[cost_hierarchy$pl])/1000000
-      fl_cost = sum(RCC[cost_hierarchy$fl])/1000000
-      ul_size = length(cost_hierarchy$ul)
-      bl_size = length(cost_hierarchy$bl)
-      pl_size = length(cost_hierarchy$pl)
-      fl_size = length(cost_hierarchy$fl)
-      
-      demand_cor = mean(cor(MXQ,RES_CONS_PATp))
-      cost_cor = cor((PCB/sum(PCB)), (MXQ/sum(MXQ)))
-      inter_cor = cor(inter, pe)
-      
-#Data writing
-
-      preDATA = data.frame(rand_id,
-                           firmid,
-                           costsysid,
-                           pacp,
-                           acp,
-                           pdr,
-                           DISP1,
-                           DISP2,
-                           DENS,
-                           COR1,
-                           COR2,
-                           Q_VAR,
-                           CS,
-                           non_unit_size,
-                           CS_levels,
-                           t(PCB),
-                           t(PCH),
-                           MAPE,
-                           t(pe),
-                           UC,
-                           OC,
-                           UC5,
-                           OC5,
-                           t(MXQ),
-                           BE_AB,
-                           pe_dec_1,pe_dec_2,pe_dec_3,pe_dec_4,pe_dec_5,pe_dec_6,pe_dec_7,pe_dec_8,pe_dec_9,pe_dec_10,
-                           ce_dec_1,ce_dec_2,ce_dec_3,ce_dec_4,ce_dec_5,ce_dec_6,ce_dec_7,ce_dec_8,ce_dec_9,ce_dec_10,
-                           pcb_dec_1,pcb_dec_2,pcb_dec_3,pcb_dec_4,pcb_dec_5,pcb_dec_6,pcb_dec_7,pcb_dec_8,pcb_dec_9,pcb_dec_10)
-       
-      colnames(preDATA) = c('randID','FirmID','CostSysID','PACP','ACP','PDR',"DISP1","DISP2","DENS","COR1","COR2","Q_VAR","CS","non_unit_size","CS_levels",
-                            c(paste0("PCB_", 0:49)),c(paste0("PCH_", 0:49)),
-                            "MAPE",c(paste0("PE_", 0:49)),"UC","OC","UC5","OC5",c(paste0("MXQ_", 0:49)),
-                            "BE_AB",
-                            c(paste0("pe_dec_", 1:10)),c(paste0("ce_dec_", 1:10)),c(paste0("pcb_dec_", 1:10)))
-      
-
-
-
 
 preDATA    
   }
