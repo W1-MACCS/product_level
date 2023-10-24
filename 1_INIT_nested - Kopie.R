@@ -5,13 +5,13 @@
 
 ## ====================================== INPUT FOR FIRM GENERATION ==================================================
 
-NUMB_FIRMS = 200
-NUMB_PRO = 10
-NUMB_RES = 50
+NUMB_FIRMS = 100
+NUMB_PRO = c(50)
+NUMB_RES = c(50)
 DISP1 = c(10)
 Q_VAR = c("LOW","MID","HIGH")
 DENS = c(0.25,0.5,0.75)
-DISP2 = c(0.25,0.5,0.75)
+DISP2 = c(-1)
 COR1 = c(-1)
 COR2 = c(-1)
 
@@ -46,7 +46,7 @@ CostSysID = c(1:nrow(COSTING_SYSTEM))
 COSTING_SYSTEM = cbind(CostSysID,COSTING_SYSTEM)
 colnames(COSTING_SYSTEM) = c('CostSysID','CP','PACP','PDR')
 
-## ====================================== oUTPUT DATA SET ==================================================
+## ====================================== OUTPUT DATA SET ==================================================
 rand = expand.grid(c(1:nrow(COSTING_SYSTEM)),c(1:nrow(FIRM)))
 colnames(rand) = c('CostSysID','randID')
 
@@ -54,9 +54,9 @@ DATA_2 = dplyr::full_join(COSTING_SYSTEM, rand, by = c('CostSysID' = 'CostSysID'
 
 DATA = dplyr::full_join(DATA_2,FIRM, by = c('randID' = "randID"))
 
-DATA = data.frame(DATA$randID,DATA$FirmID,DATA$CostSysID,DATA$PACP, DATA$CP, DATA$PDR,DATA[,9:15])
+DATA = data.frame(DATA$randID,DATA$FirmID,DATA$CostSysID,DATA$PACP, DATA$CP, DATA$PDR,DATA[,8:15])
 
-colnames(DATA) = c("randID","FirmID",'CostSysID','PACP','ACP','PDR',"DISP1", "DISP2", "DENS", "COR1","COR2","Q_VAR","CS")
+colnames(DATA) = c("randID","FirmID",'CostSysID','PACP','ACP','PDR',"NUMB_RES","DISP1", "DISP2", "DENS", "COR1","COR2","Q_VAR","CS")
 
 
 ## ====================================== MULTI CORE SETTING ==================================================
@@ -70,7 +70,8 @@ for(i in 1:nrow(FIRM)){
 
   
   MXQ = .gen_Demand(FIRM$Q_VAR[i],FIRM$NUMB_PRO[i])
-  cost_hierarchy = .gen_cost_hierarchy()
+  #cost_hierarchy = .gen_cost_hierarchy()
+  cost_hierarchy = list()
   
 
   if(FIRM$CS[i] == 0){
@@ -106,14 +107,14 @@ for(i in 1:nrow(FIRM)){
   FIRM$COR2[i] = RES_CONS_PAT_list$COR2
   FIRM$non_unit_size[i] = RES_CONS_PAT_list$non_unit_size
   FIRM$DISP2[i] = RCC_list$DISP2_draw
-  FIRM[i,13:22] = PCB
-  FIRM[i,23:32] = MXQ
+  FIRM[i,13:(13+FIRM$NUMB_PRO[i]-1)] = PCB
+  FIRM[i,(13+FIRM$NUMB_PRO[i]):(13+FIRM$NUMB_PRO[i]+FIRM$NUMB_PRO[i]-1)] = MXQ
 
   
   DATA_list$RES_CONS_PATp[[i]] = RES_CONS_PAT_list$RES_CONS_PATp
   DATA_list$RES_CONS_PAT[[i]] = RES_CONS_PAT_list$RES_CONS_PAT
   DATA_list$RES_CONS_PAT_TOTAL[[i]] = RES_CONS_PAT_list$RES_CONS_PAT_TOTAL
-  DATA_list$cost_hierarchy[[i]] = RES_CONS_PAT_list$cost_hierarchy
+  #DATA_list$cost_hierarchy[[i]] = RES_CONS_PAT_list$cost_hierarchy
   DATA_list$RCC[[i]] = RCC_list$RCC
   print(i)
   
@@ -140,16 +141,18 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       costsysid = DATA$CostSysID[i]
       pacp = DATA$PACP[i]
       acp = DATA$ACP[i]
+
       
   
       RES_CONS_PATp = DATA_list$RES_CONS_PATp[[DATA$randID[i]]]
+      NUMB_PRO =nrow(RES_CONS_PATp)
+      NUMB_RES = ncol(RES_CONS_PATp)
       RES_CONS_PAT = DATA_list$RES_CONS_PAT[[DATA$randID[i]]]
       RES_CONS_PAT_TOTAL = DATA_list$RES_CONS_PAT_TOTAL[[DATA$randID[i]]]
-      cost_hierarchy = DATA_list$cost_hierarchy[[DATA$randID[i]]]
+      #cost_hierarchy = DATA_list$cost_hierarchy[[DATA$randID[i]]]
       RCC = DATA_list$RCC[[DATA$randID[DATA$randID[i]]]]
-      MXQ = t(FIRM[which(DATA$randID[i] == FIRM$randID),23:32])
+      MXQ = t(FIRM[which(DATA$randID[i] == FIRM$randID),23:(13+NUMB_PRO+NUMB_PRO-1)])
       
-      NUMB_PRO =nrow(RES_CONS_PATp)
 
       if(DATA$PACP[i] == 0){
         CostingSystem_list = MAP_RES_CP_SIZE_MISC(DATA$ACP[i],RCC,RES_CONS_PATp)
@@ -167,12 +170,12 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
         ACT_CONS_PAT = MAP_CP_P_VOLUME(CostingSystem_list$RC_to_ACP,MXQ,NUMB_PRO)
       }
       
-
+      browser()
       
       PCH =  ACT_CONS_PAT %*% CostingSystem_list$ACP
       #PCB = RES_CONS_PATp %*% RCC
-      PCB = t(FIRM[which(FIRM$randID==DATA$randID[i]),13:22])
-      MXQ = t(FIRM[which(FIRM$randID==DATA$randID[i]),23:32])
+      PCB = t(FIRM[which(FIRM$randID==DATA$randID[i]),(13:(13+NUMB_PRO-1))])
+      MXQ = t(FIRM[which(FIRM$randID==DATA$randID[i]),(13+NUMB_PRO):(13+NUMB_PRO+NUMB_PRO-1)])
       DENS = FIRM[which(FIRM$randID == DATA$randID[i]),]$DENS
       COR1 = FIRM[which(FIRM$randID == DATA$randID[i]),]$COR1
       COR2 = FIRM[which(FIRM$randID == DATA$randID[i]),]$COR2
@@ -187,6 +190,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       
       
       MAPE = mean(abs(PCB-PCH)/PCB)
+      
       PE = (PCH-PCB)/PCB
       ERROR = PCH-PCB
       UC = sum((PCB-PCH)/PCB>0)/NUMB_PRO
@@ -201,10 +205,15 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       pch = PCH/MXQ
       pe = (pch-pcb)/pcb
       error = pch-pcb
+      mape = mean(abs(pcb-pch)/pcb)#Anand et al. 2019
+      
     
       UC5 = sum(pe>0.05)
       OC5 = sum(pe< -0.05)
+      acc = 1-((UC5+OC5)/NUMB_PRO)
       BE_AB =  UC5-OC5
+      
+      pe_factor = abs(pe)/mape
       
       
       entropy = calc_entropy(RES_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
@@ -217,6 +226,8 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       pcb_rank = rank(pcb,ties.method = "random")
       PCH_rank = rank(PCH,ties.method = "random")
       pch_rank = rank(pch,ties.method = "random")
+      pe_rank = rank(pe, ties.method = "random")
+      ERROR_rank = rank(ERROR, ties.method = "random")
       MXQ_rank = rank(MXQ,ties.method = "random")
       intra_rank = rank(intra,ties.method = "random")
       inter_rank = rank(inter,ties.method = "random")
@@ -228,6 +239,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       PRODUCT = c(1:NUMB_PRO)
       FIRM_ENV = c()
       COST_SYS = c()
+      NUMB_RES_out = c()
       PACP_out = c()
       ACP_out = c()
       PDR_out = c()
@@ -238,10 +250,13 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       COR2_out = c()
       Q_VAR_out = c()
       BE_AB_out = c()
+      acc_out = c()
+      MAPE_out = c()
       
       
       FIRM_ENV[PRODUCT] = rand_id
       COST_SYS[PRODUCT] = costsysid
+      NUMB_RES_out[PRODUCT] = NUMB_RES
       PACP_out[PRODUCT] = pacp
       ACP_out[PRODUCT] = acp
       PDR_out[PRODUCT] = pdr
@@ -252,17 +267,19 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       COR2_out[PRODUCT] = COR2
       Q_VAR_out[PRODUCT] = Q_VAR
       BE_AB_out[PRODUCT] = BE_AB
+      acc_out[PRODUCT] = acc
+      MAPE_out[PRODUCT] = mape
+      
+      preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,NUMB_RES_out,PACP_out,ACP_out,PDR_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,acc_out,MAPE_out,
+                           MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,ERROR_rank,pcb,pcb_rank,pch,pch_rank,pe,pe_rank,error,inter,inter_rank,intra,intra_rank,entropy,entropy_rank,
+                           nonzero_cons,nonzero_cons_rank,complexity,complexity_rank,BE_AB_out,pe_factor) 
+      
+      colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','NUMB_RES','PACP','ACP','PDR','DISP1','DISP2','DENS','COR1','COR2','Q_VAR',"acc","mape",
+                            'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','ERROR_rank','pcb','pcb_rank','pch','pch_rank','pe','pe_rank','error','inter','inter_rank','intra','intra_rank',
+                            'entropy','entropy_rank','nonzero_cons','nonzero_cons_rank','complexity','complexity_rank',"BE_AB",'pe_factor')
       
       browser()
-      preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,PACP_out,ACP_out,PDR_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,
-                           MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,pcb,pcb_rank,pch,pch_rank,pe,error,inter,inter_rank,intra,intra_rank,entropy,entropy_rank,
-                           nonzero_cons,nonzero_cons_rank,complexity,complexity_rank,BE_AB_out) 
       
-      colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','PACP','ACP','PDR','DISP1','DISP2','DENS','COR1','COR2','Q_VAR',
-                            'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','pcb','pcb_rank','pch','pch_rank','pe','error','inter','inter_rank','intra','intra_rank',
-                            'entropy','entropy_rank','nonzero_cons','nonzero_cons_rank','complexity','complexity_rank',"BE_AB")
-      
-
 preDATA    
   }
 

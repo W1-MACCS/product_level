@@ -26,7 +26,7 @@
   bl = c((unit_level_resources+1):(unit_level_resources+batch_level_resources))
   pl = c((max(bl)+1):(max(bl)+product_level_resources))
   fl = c((max(pl)+1):(max(pl)+facility_level_resources))
-  if(max(fl)>50){browser()}
+  #if(max(fl)>50){browser()}
   
   cost_hierarchy = list()
   cost_hierarchy$ul = ul
@@ -146,7 +146,7 @@
     RES_CONS_PAT <- ceiling(abs(RES_CONS_PAT) * 10)
     
     #product portfolio --> matching demand with complexity 
-    complexity = calc_complexity(RES_CONS_PAT)
+    complexity = calc_intra(RES_CONS_PAT)
     complexity_sorted = sort(complexity,decreasing=TRUE,index.return=TRUE)
     mxq_sorted = sort(MXQ,index.return=TRUE)$ix
 
