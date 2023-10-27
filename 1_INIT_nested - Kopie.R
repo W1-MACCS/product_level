@@ -9,13 +9,13 @@ NUMB_FIRMS = 100
 NUMB_PRO = c(50)
 NUMB_RES = c(50)
 DISP1 = c(10)
-Q_VAR = c("LOW","MID","HIGH")
+Q_VAR = c("MID")
 DENS = c(0.25,0.5,0.75)
-DISP2 = c(-1)
+DISP2 = c(0.25,0.5,0.75)
 COR1 = c(-1)
 COR2 = c(-1)
 
-CS = c(0)
+CS = c(0,1)
 
 
 
@@ -80,7 +80,7 @@ for(i in 1:nrow(FIRM)){
     
   }else if(FIRM$CS[i] == 1){
     
-    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Anand_CS(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy)
+    RES_CONS_PAT_list = .gen_RES_CONS_PAT_diag(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy)
     
   }else if(FIRM$CS[i] == 2){
     
@@ -184,7 +184,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       Q_VAR = FIRM[which(FIRM$randID == DATA$randID[i]),]$Q_VAR
       CS = FIRM[which(FIRM$randID == DATA$randID[i]),]$CS
       non_unit_size = FIRM[which(FIRM$randID == DATA$randID[i]),]$non_unit_size
-      if(CS ==0){CS_levels = 0}else{CS_levels=1}
+      #if(CS ==0){CS_levels = 0}else{CS_levels=1}
       #else if(non_unit_size<0.33){CS_levels = "LOW"}else if(non_unit_size>0.46){CS_levels = "HIGH"}else{CS_levels = "MID"}
       
       
@@ -252,6 +252,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       BE_AB_out = c()
       acc_out = c()
       MAPE_out = c()
+      CS_out = c()
       
       
       FIRM_ENV[PRODUCT] = rand_id
@@ -269,12 +270,13 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       BE_AB_out[PRODUCT] = BE_AB
       acc_out[PRODUCT] = acc
       MAPE_out[PRODUCT] = mape
+      CS_out[PRODUCT] = CS
       
-      preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,NUMB_RES_out,PACP_out,ACP_out,PDR_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,acc_out,MAPE_out,
+      preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,CS,NUMB_RES_out,PACP_out,ACP_out,PDR_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,acc_out,MAPE_out,
                            MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,ERROR_rank,pcb,pcb_rank,pch,pch_rank,pe,pe_rank,error,inter,inter_rank,intra,intra_rank,entropy,entropy_rank,
                            nonzero_cons,nonzero_cons_rank,complexity,complexity_rank,BE_AB_out,pe_factor) 
       
-      colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','NUMB_RES','PACP','ACP','PDR','DISP1','DISP2','DENS','COR1','COR2','Q_VAR',"acc","mape",
+      colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','CS','NUMB_RES','PACP','ACP','PDR','DISP1','DISP2','DENS','COR1','COR2','Q_VAR',"acc","mape",
                             'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','ERROR_rank','pcb','pcb_rank','pch','pch_rank','pe','pe_rank','error','inter','inter_rank','intra','intra_rank',
                             'entropy','entropy_rank','nonzero_cons','nonzero_cons_rank','complexity','complexity_rank',"BE_AB",'pe_factor')
       
