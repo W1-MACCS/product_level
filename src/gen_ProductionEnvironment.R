@@ -146,7 +146,7 @@
     RES_CONS_PAT <- ceiling(abs(RES_CONS_PAT) * 10)
     
     #product portfolio --> matching demand with complexity 
-    complexity = calc_intra(RES_CONS_PAT)
+    complexity = rowSums(RES_CONS_PAT)
     complexity_sorted = sort(complexity,decreasing=TRUE,index.return=TRUE)
     mxq_sorted = sort(MXQ,index.return=TRUE)$ix
 
@@ -276,19 +276,21 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     
 
     for(i in 1:NUMB_RES){
-      random_vector =  rnorm(NUMB_PRO, mean = i, sd = (NUMB_PRO-i)*DENS)
+      random_vector =  rnorm(NUMB_PRO, mean = i, sd = (NUMB_PRO-i)*DENS*0.66)
       random_vector = unique(round(abs(random_vector),0))
       random_vector = random_vector[random_vector>0 & random_vector<= NUMB_PRO]
       
-      RES_CONS_PAT[random_vector,i] <- random_vector
+      RES_CONS_PAT[random_vector,i] <- 1
       
     }
     
-    RES_CONS_PATpre = matrix(rnorm(NUMB_PRO*NUMB_RES,mean=0,sd=1), 
-                             NUMB_PRO, NUMB_RES)  
+    RES_CONS_PATpre = matrix(rnorm(NUMB_PRO*NUMB_RES,mean=0,sd=1),
+                             NUMB_PRO, NUMB_RES)
     
     RES_CONS_PAT = RES_CONS_PAT * RES_CONS_PATpre
-    #RES_CONS_PAT = RES_CONS_PAT[,sample(c(1:NUMB_RES),NUMB_RES)]
+    
+    #browser()
+    RES_CONS_PAT = t(RES_CONS_PAT[,sample(c(1:NUMB_RES),NUMB_RES)])
     ## ====================== STEP 1.b DENSITY =========================
     # 
     # res_cons_pat_b_pre = runif(NUMB_PRO*NUMB_RES)
@@ -308,7 +310,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     RES_CONS_PAT <- ceiling(abs(RES_CONS_PAT) * 10)
     
     #product portfolio --> matching demand with complexity 
-    complexity = calc_intra(RES_CONS_PAT)
+    complexity = rowSums(RES_CONS_PAT)
     complexity_sorted = sort(complexity,decreasing=TRUE,index.return=TRUE)
     mxq_sorted = sort(MXQ,index.return=TRUE)$ix
     
@@ -330,13 +332,14 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     TCU <- colSums(RES_CONS_PAT_TOTAL)
     ##INDIVIDUAL REQUIREMENTS OF THE PRODUCTS * DEMAMD / TRU (Currently like this in Anand et al. 2019)
     RES_CONS_PATp <- sweep((RES_CONS_PAT_TOTAL),2,TCU,"/") #Absolute matrix to relative matrix
-    
-    rescons = melt(RES_CONS_PAT)
-    colnames(rescons) = c("NUMB_PRO","NUMB_RES","value")
 
-   
-    ggplot(rescons, aes(x= NUMB_RES,y=NUMB_PRO,fill=value))+geom_tile()+theme_classic()+
-      scale_fill_gradientn(colours = c("white","blue"))
+    # browser()
+    # rescons = melt(RES_CONS_PAT)
+    # colnames(rescons) = c("NUMB_PRO","NUMB_RES","value")
+    # 
+    # 
+    # ggplot(rescons, aes(x= NUMB_RES,y=NUMB_PRO,fill=value))+geom_tile()+theme_classic()+
+    #   scale_fill_gradientn(colours = c("white","blue"))
     ## ===================== EXCPETION HANDLER ====================
     
     
@@ -1051,6 +1054,8 @@ cost_hierarchy$ul_fl = ul_fl
   
   RCC = RCC$RCC
   
+  #RCC = RCC[sample(c(1:NUMB_RES),NUMB_RES)]
+  
   RCC_list$RCC = RCC
   
   RCC_list$DISP2_draw = DISP2
@@ -1072,12 +1077,17 @@ cost_hierarchy$ul_fl = ul_fl
 ###Additional functions
 calc_entropy <-function(matrix){
   
-  #ElMaraghy(2012)
-  connections = rowSums(matrix)
   
-  complexity = lapply(connections,function(x){-(1/x)*log2(1/x)})
-  
-  complexity = unlist(complexity)
+  if(ncol(matrix)>1){
+    #ElMaraghy(2012)
+    connections = rowSums(matrix)
+    
+    complexity = lapply(connections,function(x){-(1/x)*log2(1/x)})
+    
+    complexity = unlist(complexity)
+    
+  }else{complexity = 0}
+
   
   return(complexity)
   
@@ -1087,14 +1097,21 @@ calc_entropy <-function(matrix){
 
 
 calc_intra <-function(matrix){
-  avg_cons =  rowMeans(matrix)
   
-  intra = c()
-  for(i in 1:nrow(matrix)){
+  
+  if(ncol(matrix)>1){
+    avg_cons =  rowMeans(matrix)
     
-    intra[i]= sum(((matrix[i,]-avg_cons)/avg_cons)^2)
+    intra = c()
+    for(i in 1:nrow(matrix)){
+      
+      intra[i]= sum(((matrix[i,]-avg_cons)/avg_cons)^2)
+      
+    } 
     
-  }
+    
+  }else{intra =0}
+
   
   return(intra)
 }
@@ -1102,26 +1119,38 @@ calc_intra <-function(matrix){
 
 
 calc_inter<-function(matrix){
-  avg_cons =  colMeans(matrix)
   
-  inter = c()
-  for(i in 1:nrow(matrix)){
+  
+  if(ncol(matrix)>1){
+    avg_cons =  colMeans(matrix)
     
-    inter[i]= sum(((matrix[i,]-avg_cons)/avg_cons)^2)
+    inter = c()
+    for(i in 1:nrow(matrix)){
+      
+      inter[i]= sum(((matrix[i,]-avg_cons)/avg_cons)^2)
+      
+    }
     
-  }
+  }else{inter =0}
+ 
   
   return(inter)
 }
 
 calc_nonzero_cons <- function(matrix){
-  nonzero_cons = c()
-  for(i in 1:nrow(matrix)){
-    nonzero_cons[i]=sum(matrix[i,]>0)
-
-
-  }
   
+  
+  if(ncol(matrix)>1){
+    nonzero_cons = c()
+    for(i in 1:nrow(matrix)){
+      nonzero_cons[i]=sum(matrix[i,]>0)
+      
+      
+    }
+    
+  }else{nonzero_cons =1}
+
+  nonzero_cons= nonzero_cons/ncol(matrix)
   return(nonzero_cons)  
   
 }
@@ -1129,13 +1158,34 @@ calc_nonzero_cons <- function(matrix){
 
 
 calc_complexity<-function(matrix){
-  nonzero_cons = calc_nonzero_cons(matrix)
-  intra = calc_intra(matrix)
-  x = nonzero_cons/sum(nonzero_cons)
-  y = intra/sum(intra)
   
-  complexity = x+y 
+  if(ncol(matrix)>1){
+    nonzero_cons = calc_nonzero_cons(matrix)
+    intra = calc_intra(matrix)
+    x = nonzero_cons/sum(nonzero_cons)
+    y = intra/sum(intra)
+    
+    complexity = x+y 
+    
+    
+  }else{complexity = 0}
+
   return(complexity)
 }
 
+calc_sd_cons <- function(matrix){
+  
+  if(ncol(matrix)>1){
+    sd_cons = c()
+    for(i in 1:nrow(matrix)){
+      sd_cons[i]=sd(matrix[i,])
+      
+      
+    } 
+    
+  }else{sd_cons =0}
 
+
+  return(sd_cons)  
+  
+}

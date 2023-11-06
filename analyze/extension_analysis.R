@@ -4,93 +4,198 @@ DATA = output
 
 DATA = DATA[which(!is.na(DATA$mape)),]
 
-
-
-data_pch_rank = aggregate(.~ pch_rank, data = DATA, mean)
-
-ggplot(data_pch_rank, aes(x = pch_rank, y= pch, col ="pch"))+geom_line(aes(y=pcb, col ="pcb"))+geom_line(aes(y=pch))+theme_classic()+facet_wrap(CS)+
-  ggtitle("Comparison of pcb and pch over rank-ordered products by pch")
-
-
-
+###PCH RANKED PERCENTAGE ERROR###
 DATA = output
 
-data_pch_rank = aggregate(.~ CS+pch_rank+DISP2, data = DATA, mean)
+data_pch_rank = aggregate(.~ CS+pch_rank+PDR+DENS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$CS = as.factor(data_pch_rank$CS)
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
-ggplot(data_pch_rank, aes(x = pch_rank, y= pe, col = CS))+geom_line()+theme_classic()+facet_grid(~DISP2)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+data_pch_rank$Agg_Degr = as.factor(data_pch_rank$Agg_Degr)
+ggplot(data_pch_rank, aes(x = pch_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+
+
+summary(subset(DATA, DENS == 0.25)$nonzero_cons)/50
+summary(subset(DATA, DENS == 0.5)$nonzero_cons)/50
+summary(subset(DATA, DENS == 0.75)$nonzero_cons)/50
+
+summary(subset(DATA, CS == 0&PDR== 0)$BE_AB)
+summary(subset(DATA, CS == 1&PDR== 0)$BE_AB)
+summary(subset(DATA, CS == 0&PDR== 1)$BE_AB)
+summary(subset(DATA, CS == 1&PDR== 1)$BE_AB)
+
+###MXQ RANKED PERCENTAGE ERROR###
+DATA = output
+
+data_pch_rank = aggregate(.~ CS+MXQ_rank+PDR+Q_VAR, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+Q_VAR)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
+
+###INTER RANKED PERCENTAGE ERROR###
+DATA = output
+
+data_pch_rank = aggregate(.~ CS+inter_rank+PDR+DENS, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+ggplot(data_pch_rank, aes(x = inter_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
+
+###INTRA RANKED PERCENTAGE ERROR###
+DATA = output
+
+data_pch_rank = aggregate(.~ CS+intra_rank+PDR+DENS, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+ggplot(data_pch_rank, aes(x = intra_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 
-data_mxq_rank = aggregate(.~ MXQ_rank, data = DATA, mean)
+###NONZERO RANKED PERCENTAGE ERROR###
+DATA = output
 
-ggplot(data_mxq_rank, aes(x = MXQ_rank, y= PCH, col ="pch"))+geom_line(aes(y=PCB, col ="pcb"))+geom_line(aes(y=PCH))+theme_classic()+facet_wrap(CS)+
-  ggtitle("Comparison of pcb and pch over rank-ordered products by mxq")
-
-
-
-
-
-
-
-
- ## Appendix Correlation between demand and resource consumption
-
-DATAplot = output
-
-library(ggplot2)
-DATAplot$PDR = as.factor(DATAplot$PDR)
-DATAplot$CS[DATAplot$CS == 0] <- "ALL UNIT-LEVEL COSTS"
-DATAplot$CS[DATAplot$CS == 1] <- "SIMPLE HIERARCHY"
-DATAplot$CS[DATAplot$CS == 2] <- "ABC HIERARCHY-THEORY"
-DATAplot$CS[DATAplot$CS == 3] <- "ABC HIERARCHY-EMPIRICISM"
-DATAplot$CS = factor(DATAplot$CS,levels = c("ALL UNIT-LEVEL COSTS", "SIMPLE HIERARCHY","ABC HIERARCHY-THEORY","ABC HIERARCHY-EMPIRICISM") )
-ggplot(DATAplot,aes(factor(CS),ul_fl))+geom_boxplot(aes(fill=CS))+theme_classic()+
-  ylab("Pearson correlation between MXQ and RES_CONS_PAT")
+data_pch_rank = aggregate(.~ CS+nonzero_cons_rank+PDR+DENS, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+ggplot(data_pch_rank, aes(x = nonzero_cons_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
-##########################################################################################################
-##EFFECT MATRIX
+###SD NONZERO RANKED PERCENTAGE ERROR###
+DATA = output
+
+data_pch_rank = aggregate(.~ CS+sd_cons_rank+PDR+DENS, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+ggplot(data_pch_rank, aes(x = sd_cons_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
+
+
+
+
+
+###PCH RANKED PERCENTAGE ERROR### PACP Heuristics
+DATA = output
+
+data_pch_rank = aggregate(.~ CS+MXQ_rank+PACP+ACP, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PACP = as.factor(data_pch_rank$PACP)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, col = PACP))+geom_line()+theme_classic()+facet_grid(~CS+ACP)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
+
+
+
+###MXQ RANKED PERCENTAGE ERROR  COST POOLS###
+DATA = output
+
+data_pch_rank = aggregate(.~ CS+MXQ_rank+PDR+ACP, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+ACP)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
+
+
+
+
+
+###pch PERCENTAGE ERROR###
 
 DATA = output
 
-DATA = DATA[which(!is.na(DATA$VB_PATTERN)),]
+data_pch_rank = aggregate(.~ CS+pch_rank+PDR, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+ggplot(data_pch_rank, aes(x = pch_rank, y= pcb))+geom_line()+geom_line(aes(y=PCB))+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+
+
+
+
+
+
+##########################################################################################################
+##Correlation MATRIX
+
+DATA = output
 
 DATA$Q_VAR = as.character(DATA$Q_VAR)
 
 DATA$Q_VAR[DATA$Q_VAR == "LOW"] <- 1
-#DATA$Q_VAR[DATA$Q_VAR == "MID"] <- 2
+DATA$Q_VAR[DATA$Q_VAR == "MID"] <- 2
 DATA$Q_VAR[DATA$Q_VAR == "HIGH"] <- 3
 
-#DATA$VB_PATTERN2 = (DATA$pe_dec_10+DATA$pe_dec_9)/2- (DATA$pe_dec_1+DATA$pe_dec_2)/2
-#DATA$CB_PATTERN2 = (DATA$ce_dec_10+DATA$ce_dec_9)/2 - (DATA$ce_dec_1+DATA$ce_dec_2)/2
 
 
 library(apaTables)
-DATA = subset(DATA, CS == 2)
 DATA$CS = as.numeric(DATA$CS)
 DATA$PDR = as.numeric(DATA$PDR)
 DATA$ACP = as.numeric(DATA$ACP)
 DATA$Q_VAR = as.numeric(DATA$Q_VAR)
+DATA$DENS = as.numeric(DATA$DENS)
 
-if(DATA$CS[1] == 0){
-  reg = VB_PATTERN ~ DISP1 + DISP2+COR1+COR2+ DENS +Q_VAR+bl_size+ACP+PDR
-  
-}else if(DATA$CS[1] == 1){
-reg = VB_PATTERN ~ DISP1 + DISP2+COR1+COR2+ DENS +Q_VAR+fl_size+ACP+PDR
-}else{
-reg = VB_PATTERN ~ DISP1 + DISP2+DENS +Q_VAR+bl_size+pl_size+fl_size+ACP+PDR#+ul_bl+ul_pl+ul_fl+bl_pl+bl_fl+pl_fl#
-}
-  
-#reg = VB_PATTERN ~  non_unit_size + I(non_unit_size*Q_VAR)+I(ACP*non_unit_size)#+I(PDR*non_unit_size)
-#reg = VB_PATTERN ~ non_unit_size + PDR + Q_VAR+ACP
 
-reg_data = data.frame(lapply(DATA[,all.vars(reg)], scale))
+cor_data= data.frame(DATA$CS,DATA$ACP,DATA$PDR,DATA$DENS,DATA$Q_VAR,DATA$MXQ,DATA$intra,DATA$inter,DATA$entropy,DATA$nonzero_cons,DATA$sd_cons,DATA$pcb,DATA$PCB,DATA$pch,DATA$PCH,DATA$pe)
+colnames(cor_data) = c("CS","ACP","Driver","DENS","Q_VAR","MXQ","intra","inter","entropy","nonzero_cons","sd_cons","pcb","PCB","pch","PCH","pe")
+apa.cor.table(cor_data)
+
+
+
+
+##Regression Analysis
+DATA = output
+DATA = subset(DATA, ACP>1)
+
+
+VBC_DATA = subset(DATA, PDR ==1 & CS==0)
+
+reg = pe ~ MXQ+sd_cons+pch#+intra+inter+sd_cons
+
+reg_data = data.frame(lapply(VBC_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 
+VBC_DATA = subset(DATA, PDR ==1 & CS==1)
+
+reg = pe ~ MXQ+sd_cons+pch
+
+reg_data = data.frame(lapply(VBC_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+
+ABC_DATA = subset(DATA, PDR ==0 &CS==0)
+
+reg = pe ~ MXQ+sd_cons+pch
+
+reg_data = data.frame(lapply(ABC_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+ABC_DATA = subset(DATA, PDR ==0 &CS==1)
+
+reg = pe ~ MXQ+sd_cons+pch
+
+reg_data = data.frame(lapply(ABC_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 
 

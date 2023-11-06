@@ -9,9 +9,9 @@ NUMB_FIRMS = 100
 NUMB_PRO = c(50)
 NUMB_RES = c(50)
 DISP1 = c(10)
-Q_VAR = c("MID")
+Q_VAR = c("LOW","MID","HIGH")
 DENS = c(0.25,0.5,0.75)
-DISP2 = c(0.25,0.5,0.75)
+DISP2 = c(-1)
 COR1 = c(-1)
 COR2 = c(-1)
 
@@ -39,7 +39,7 @@ COSTING_SYSTEM = list()
 
 CP = c(1,3,6,10,15,20)#1,3,6,10,15,20#as in Anand et al. (2017)
 CP_HEURISTIC = c(2)#2 -size-random-misc #as in Anand et al. (2017)
-CD_HEURISTIC = c(0)#0 - Big Pool #as in Anand et al. (2017)
+CD_HEURISTIC = c(0,1)#0 - Big Pool #as in Anand et al. (2017)
 
 COSTING_SYSTEM = expand.grid(CP,CP_HEURISTIC,CD_HEURISTIC)
 CostSysID = c(1:nrow(COSTING_SYSTEM))
@@ -151,7 +151,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       RES_CONS_PAT_TOTAL = DATA_list$RES_CONS_PAT_TOTAL[[DATA$randID[i]]]
       #cost_hierarchy = DATA_list$cost_hierarchy[[DATA$randID[i]]]
       RCC = DATA_list$RCC[[DATA$randID[DATA$randID[i]]]]
-      MXQ = t(FIRM[which(DATA$randID[i] == FIRM$randID),23:(13+NUMB_PRO+NUMB_PRO-1)])
+      MXQ = t(FIRM[which(DATA$randID[i] == FIRM$randID),(13+NUMB_PRO):(13+NUMB_PRO+NUMB_PRO-1)])
       
 
       if(DATA$PACP[i] == 0){
@@ -186,7 +186,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       non_unit_size = FIRM[which(FIRM$randID == DATA$randID[i]),]$non_unit_size
       #if(CS ==0){CS_levels = 0}else{CS_levels=1}
       #else if(non_unit_size<0.33){CS_levels = "LOW"}else if(non_unit_size>0.46){CS_levels = "HIGH"}else{CS_levels = "MID"}
-      
+      if(acp<=6){Agg_degree = 0}else{Agg_degree=1}
       
       
       MAPE = mean(abs(PCB-PCH)/PCB)
@@ -216,23 +216,25 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       pe_factor = abs(pe)/mape
       
       
-      entropy = calc_entropy(RES_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
-      intra = calc_intra(RES_CONS_PAT) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
-      inter = calc_inter(RES_CONS_PAT) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
-      nonzero_cons = calc_nonzero_cons(RES_CONS_PAT)
-      complexity = calc_complexity(RES_CONS_PAT)
+      entropy = calc_entropy(ACT_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
+      intra = calc_intra(ACT_CONS_PAT) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
+      inter = calc_inter(ACT_CONS_PAT) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
+      nonzero_cons = rowMeans(ACT_CONS_PAT)/mean(rowMeans(ACT_CONS_PAT))
+      sd_cons = rowMeans(ACT_CONS_PAT)
+      complexity = calc_complexity(ACT_CONS_PAT)
       
       PCB_rank = rank(PCB,ties.method = "random")
       pcb_rank = rank(pcb,ties.method = "random")
       PCH_rank = rank(PCH,ties.method = "random")
       pch_rank = rank(pch,ties.method = "random")
+      MXQ_rank = rank(MXQ,ties.method = "random")
       pe_rank = rank(pe, ties.method = "random")
       ERROR_rank = rank(ERROR, ties.method = "random")
-      MXQ_rank = rank(MXQ,ties.method = "random")
       intra_rank = rank(intra,ties.method = "random")
       inter_rank = rank(inter,ties.method = "random")
       entropy_rank = rank(entropy,ties.method = "random")
       nonzero_cons_rank = rank(nonzero_cons,ties.method = "random")
+      sd_cons_rank = rank(sd_cons,ties.method = "random")
       complexity_rank = rank(complexity,ties.method = "random")
       
       #data_logging
@@ -253,6 +255,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       acc_out = c()
       MAPE_out = c()
       CS_out = c()
+      Agg_Degr =c()
       
       
       FIRM_ENV[PRODUCT] = rand_id
@@ -271,14 +274,15 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       acc_out[PRODUCT] = acc
       MAPE_out[PRODUCT] = mape
       CS_out[PRODUCT] = CS
+      Agg_Degr[PRODUCT] = Agg_degree
       
-      preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,CS,NUMB_RES_out,PACP_out,ACP_out,PDR_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,acc_out,MAPE_out,
+      preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,CS,NUMB_RES_out,PACP_out,ACP_out,PDR_out,Agg_Degr,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,acc_out,MAPE_out,
                            MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,ERROR_rank,pcb,pcb_rank,pch,pch_rank,pe,pe_rank,error,inter,inter_rank,intra,intra_rank,entropy,entropy_rank,
-                           nonzero_cons,nonzero_cons_rank,complexity,complexity_rank,BE_AB_out,pe_factor) 
+                           nonzero_cons,nonzero_cons_rank,complexity,complexity_rank,sd_cons,sd_cons_rank,BE_AB_out,pe_factor) 
       
-      colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','CS','NUMB_RES','PACP','ACP','PDR','DISP1','DISP2','DENS','COR1','COR2','Q_VAR',"acc","mape",
+      colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','CS','NUMB_RES','PACP','ACP','PDR','Agg_Degr','DISP1','DISP2','DENS','COR1','COR2','Q_VAR',"acc","mape",
                             'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','ERROR_rank','pcb','pcb_rank','pch','pch_rank','pe','pe_rank','error','inter','inter_rank','intra','intra_rank',
-                            'entropy','entropy_rank','nonzero_cons','nonzero_cons_rank','complexity','complexity_rank',"BE_AB",'pe_factor')
+                            'entropy','entropy_rank','nonzero_cons','nonzero_cons_rank','complexity','complexity_rank','sd_cons','sd_cons_rank',"BE_AB",'pe_factor')
       
       browser()
       
