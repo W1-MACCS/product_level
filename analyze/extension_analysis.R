@@ -6,94 +6,160 @@ DATA = DATA[which(!is.na(DATA$mape)),]
 
 ###PCH RANKED PERCENTAGE ERROR###
 DATA = output
+DATA$CS[DATA$CS == 0] <- "ORIGINAL"
+DATA$CS[DATA$CS == 1] <- "ORIGINAL + VOLUME MATCH"
+DATA$CS[DATA$CS == 2] <- "HIERARCHICAL"
+DATA$CS[DATA$CS == 3] <- "HIERARCHICAL + VOLUME MATCH"
 
-data_pch_rank = aggregate(.~ CS+pch_rank+PDR+DENS, data = DATA, mean)
+
+
+
+data_pch_rank = aggregate(.~ CS+pch_rank, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
-data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("ORIGINAL","ORIGINAL + VOLUME MATCH","HIERARCHICAL","HIERARCHICAL + VOLUME MATCH"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
-data_pch_rank$Agg_Degr = as.factor(data_pch_rank$Agg_Degr)
-ggplot(data_pch_rank, aes(x = pch_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+ggplot(data_pch_rank, aes(x = pch_rank, y= ape))+geom_line(size=1)+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
 
 
-summary(subset(DATA, DENS == 0.25)$nonzero_cons)/50
-summary(subset(DATA, DENS == 0.5)$nonzero_cons)/50
-summary(subset(DATA, DENS == 0.75)$nonzero_cons)/50
+# summary(subset(DATA, DENS == 0.25)$nonzero_cons)/50
+# summary(subset(DATA, DENS == 0.5)$nonzero_cons)/50
+# summary(subset(DATA, DENS == 0.75)$nonzero_cons)/50
 
-summary(subset(DATA, CS == 0&PDR== 0)$BE_AB)
-summary(subset(DATA, CS == 1&PDR== 0)$BE_AB)
-summary(subset(DATA, CS == 0&PDR== 1)$BE_AB)
-summary(subset(DATA, CS == 1&PDR== 1)$BE_AB)
+summary(subset(DATA, CS == 0&DENS== 0.75)$BE_AB)
+summary(subset(DATA, CS == 1&DENS== 0.75)$BE_AB)
+summary(subset(DATA, CS == 2&DENS== 0.75)$BE_AB)
+summary(subset(DATA, CS == 3&DENS== 0.75)$BE_AB)
+
 
 ###MXQ RANKED PERCENTAGE ERROR###
 DATA = output
+DATA$CS[DATA$CS == 0] <- "ORIGINAL"
+DATA$CS[DATA$CS == 1] <- "ORIGINAL + VOLUME MATCH"
+DATA$CS[DATA$CS == 2] <- "HIERARCHICAL"
+DATA$CS[DATA$CS == 3] <- "HIERARCHICAL + VOLUME MATCH"
 
-data_pch_rank = aggregate(.~ CS+MXQ_rank+PDR+Q_VAR, data = DATA, mean)
+
+data_pch_rank = aggregate(.~ CS+MXQ_rank+ACP, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
-data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("ORIGINAL","ORIGINAL + VOLUME MATCH","HIERARCHICAL","HIERARCHICAL + VOLUME MATCH"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
-ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+Q_VAR)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
+
+
+
+###MXQ RANKED PERCENTAGE ERROR - Q_VAR###
+DATA = output
+DATA$CS[DATA$CS == 0] <- "ORIGINAL"
+DATA$CS[DATA$CS == 1] <- "ORIGINAL + VOLUME MATCH"
+DATA$CS[DATA$CS == 2] <- "HIERARCHICAL"
+DATA$CS[DATA$CS == 3] <- "HIERARCHICAL + VOLUME MATCH"
+
+
+data_pch_rank = aggregate(.~ CS+MXQ_rank+Q_VAR+DISP2, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("ORIGINAL","ORIGINAL + VOLUME MATCH","HIERARCHICAL","HIERARCHICAL + VOLUME MATCH"))
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+facet_grid(~CS+DISP2)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 ###INTER RANKED PERCENTAGE ERROR###
-DATA = output
+DATA = subset(output, inter_rank ==1 | inter_rank == -1)
+DATA$CS[DATA$CS == 0] <- "ORIGINAL"
+DATA$CS[DATA$CS == 1] <- "ORIGINAL + VOLUME MATCH"
+DATA$CS[DATA$CS == 2] <- "HIERARCHICAL"
+DATA$CS[DATA$CS == 3] <- "HIERARCHICAL + VOLUME MATCH"
 
-data_pch_rank = aggregate(.~ CS+inter_rank+PDR+DENS, data = DATA, mean)
+
+
+data_pch_rank = aggregate(.~ CS+inter_rank+DENS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
-data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("ORIGINAL","ORIGINAL + VOLUME MATCH","HIERARCHICAL","HIERARCHICAL + VOLUME MATCH"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
-ggplot(data_pch_rank, aes(x = inter_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+ggplot(data_pch_rank, aes(x = inter_rank, y= pe, linetype = DENS))+geom_line()+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 0)+ylim(-1,1)
 
 
 ###INTRA RANKED PERCENTAGE ERROR###
-DATA = output
+DATA = subset(output, intra_rank ==1 | intra_rank == -1)
+DATA$CS[DATA$CS == 0] <- "ORIGINAL"
+DATA$CS[DATA$CS == 1] <- "ORIGINAL + VOLUME MATCH"
+DATA$CS[DATA$CS == 2] <- "HIERARCHICAL"
+DATA$CS[DATA$CS == 3] <- "HIERARCHICAL + VOLUME MATCH"
 
-data_pch_rank = aggregate(.~ CS+intra_rank+PDR+DENS, data = DATA, mean)
+
+
+data_pch_rank = aggregate(.~ CS+intra_rank+Q_VAR, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
-data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("ORIGINAL","ORIGINAL + VOLUME MATCH","HIERARCHICAL","HIERARCHICAL + VOLUME MATCH"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
-ggplot(data_pch_rank, aes(x = intra_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
-
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+ggplot(data_pch_rank, aes(x = intra_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 0)+ylim(-1,1)
 
 
 ###NONZERO RANKED PERCENTAGE ERROR###
-DATA = output
+DATA = subset(output, ACP>=3)
+DATA$CS[DATA$CS == 0] <- "ORIGINAL"
+DATA$CS[DATA$CS == 1] <- "ORIGINAL + VOLUME MATCH"
+DATA$CS[DATA$CS == 2] <- "HIERARCHICAL"
+DATA$CS[DATA$CS == 3] <- "HIERARCHICAL + VOLUME MATCH"
 
-data_pch_rank = aggregate(.~ CS+nonzero_cons_rank+PDR+DENS, data = DATA, mean)
+data_pch_rank = aggregate(.~ CS+nonzero_cons_rank+DISP2, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
-data_pch_rank$CS = as.factor(data_pch_rank$CS)
+data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("ORIGINAL","ORIGINAL + VOLUME MATCH","HIERARCHICAL","HIERARCHICAL + VOLUME MATCH"))
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+ggplot(data_pch_rank, aes(x = nonzero_cons_rank, y= pe, linetype = DISP2))+geom_line()+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
+
+###ACT CONS RANKED PERCENTAGE ERROR###
+DATA = subset(output, ACP>=3)
+DATA$CS[DATA$CS == 0] <- "ORIGINAL"
+DATA$CS[DATA$CS == 1] <- "ORIGINAL + VOLUME MATCH"
+DATA$CS[DATA$CS == 2] <- "HIERARCHICAL"
+DATA$CS[DATA$CS == 3] <- "HIERARCHICAL + VOLUME MATCH"
+
+data_pch_rank = aggregate(.~ CS+sd_cons_rank+Q_VAR, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("ORIGINAL","ORIGINAL + VOLUME MATCH","HIERARCHICAL","HIERARCHICAL + VOLUME MATCH"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
-ggplot(data_pch_rank, aes(x = nonzero_cons_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+ggplot(data_pch_rank, aes(x = sd_cons_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
-###SD NONZERO RANKED PERCENTAGE ERROR###
+
+
+###ACT CONS RANKED PERCENTAGE ERROR###
 DATA = output
 
-data_pch_rank = aggregate(.~ CS+sd_cons_rank+PDR+DENS, data = DATA, mean)
+data_pch_rank = aggregate(.~ CS+MXQ_rank+DENS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$CS = as.factor(data_pch_rank$CS)
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
-ggplot(data_pch_rank, aes(x = sd_cons_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, col = DENS))+geom_line()+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 
 
-
-
-###PCH RANKED PERCENTAGE ERROR### PACP Heuristics
-DATA = output
-
-data_pch_rank = aggregate(.~ CS+MXQ_rank+PACP+ACP, data = DATA, mean)
-data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
-data_pch_rank$CS = as.factor(data_pch_rank$CS)
-data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
-data_pch_rank$PACP = as.factor(data_pch_rank$PACP)
-ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, col = PACP))+geom_line()+theme_classic()+facet_grid(~CS+ACP)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 
@@ -101,13 +167,14 @@ ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, col = PACP))+geom_line()+theme_cl
 ###MXQ RANKED PERCENTAGE ERROR  COST POOLS###
 DATA = output
 
-data_pch_rank = aggregate(.~ CS+MXQ_rank+PDR+ACP, data = DATA, mean)
+data_pch_rank = aggregate(.~ MXQ_rank+DENS+Q_VAR, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
-data_pch_rank$CS = as.factor(data_pch_rank$CS)
+#data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("ORIGINAL","ORIGINAL + VOLUME MATCH","HIERARCHICAL","HIERARCHICAL + VOLUME MATCH"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
-ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, col = PDR))+geom_line()+theme_classic()+facet_grid(~CS+ACP)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 
@@ -125,6 +192,22 @@ data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 ggplot(data_pch_rank, aes(x = pch_rank, y= pcb))+geom_line()+geom_line(aes(y=PCB))+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
 
+
+############################################BE_AB#######################################################################
+DATA = subset(output)
+DATA$CS[DATA$CS == 0] <- "ORIGINAL"
+DATA$CS[DATA$CS == 1] <- "ORIGINAL + VOLUME MATCH"
+DATA$CS[DATA$CS == 2] <- "HIERARCHICAL"
+DATA$CS[DATA$CS == 3] <- "HIERARCHICAL + VOLUME MATCH"
+DATA$CS = factor(DATA$CS, levels = c("ORIGINAL","ORIGINAL + VOLUME MATCH","HIERARCHICAL","HIERARCHICAL + VOLUME MATCH"))
+DATA$ACP = as.factor(DATA$ACP)
+ggplot(DATA,aes(x= BE_AB))+geom_histogram(fill="black", alpha=0.2, position="identity")+geom_vline(xintercept = 0)+facet_grid(~DENS+DISP2)+theme_classic()
+
+
+
+DATA$CS = as.factor(DATA$CS)
+DATA$ACP = as.factor(DATA$ACP)
+ggplot(DATA,aes(x= acc))+geom_histogram(fill="black", alpha=0.2, position="identity")+facet_grid(~ACP)
 
 
 
@@ -151,21 +234,50 @@ DATA$Q_VAR = as.numeric(DATA$Q_VAR)
 DATA$DENS = as.numeric(DATA$DENS)
 
 
-cor_data= data.frame(DATA$CS,DATA$ACP,DATA$PDR,DATA$DENS,DATA$Q_VAR,DATA$MXQ,DATA$intra,DATA$inter,DATA$entropy,DATA$nonzero_cons,DATA$sd_cons,DATA$pcb,DATA$PCB,DATA$pch,DATA$PCH,DATA$pe)
-colnames(cor_data) = c("CS","ACP","Driver","DENS","Q_VAR","MXQ","intra","inter","entropy","nonzero_cons","sd_cons","pcb","PCB","pch","PCH","pe")
-apa.cor.table(cor_data)
+cor_data= data.frame(DATA$CS,DATA$ACP,DATA$DENS,DATA$Q_VAR,DATA$MXQ,DATA$intra_rank,DATA$inter_rank,DATA$sd_cons,DATA$nonzero_cons,DATA$BE_AB,DATA$acc,DATA$pcb,DATA$pch,DATA$pe)
+colnames(cor_data) = c("CS","ACP","DENS","Q_VAR","MXQ","intra","inter","sd_cons","nonzero_cons","BE_AB","acc","pcb","pch","pe")
+apa.cor.table(cor_data,filename = paste0("cor",".doc"), table.number = 1)
+
+
+
+##System Level
+REG_DATA = DATA
+
+
+reg = mape ~ ACP+PDR+DENS+Q_VAR+CS+PMH
+
+reg_data = data.frame(lapply(REG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+
+
+reg = PMH ~ DENS+Q_VAR+CS+DISP2
+
+reg_data = data.frame(lapply(REG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+
+
+reg = BE_AB ~ ACP+DENS+Q_VAR+PMH+CS
+
+reg_data = data.frame(lapply(REG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 
 
 
 ##Regression Analysis
 DATA = output
-DATA = subset(DATA, ACP>1)
+#DATA = subset(DATA, ACP>1)
+
 
 
 VBC_DATA = subset(DATA, PDR ==1 & CS==0)
 
-reg = pe ~ MXQ+sd_cons+pch#+intra+inter+sd_cons
+reg = pe ~ MXQ+act_cons+pch+inter_rank+intra_rank#+nonzero_cons
 
 reg_data = data.frame(lapply(VBC_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
@@ -174,7 +286,7 @@ apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.nu
 
 VBC_DATA = subset(DATA, PDR ==1 & CS==1)
 
-reg = pe ~ MXQ+sd_cons+pch
+reg = pe ~ MXQ+act_cons+pch+inter_rank+intra_rank#+nonzero_cons
 
 reg_data = data.frame(lapply(VBC_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
@@ -183,15 +295,17 @@ apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.nu
 
 ABC_DATA = subset(DATA, PDR ==0 &CS==0)
 
-reg = pe ~ MXQ+sd_cons+pch
+reg = pe ~ MXQ+act_cons+pch+inter_rank+intra_rank+nonzero_cons
 
 reg_data = data.frame(lapply(ABC_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+
 
 ABC_DATA = subset(DATA, PDR ==0 &CS==1)
 
-reg = pe ~ MXQ+sd_cons+pch
+reg = pe ~ MXQ+act_cons+pch+inter_rank+intra_rank+nonzero_cons
 
 reg_data = data.frame(lapply(ABC_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
@@ -200,44 +314,60 @@ apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.nu
 
 
 
-##########################################################################################################################
 
 
+##############################################################################################################################
+
+##Regression Analysis
 DATA = output
-
-DATA = subset(DATA, CS == 3)
-
-
-mean(DATA$ul_bl)
-sd(DATA$ul_bl)
-
-mean(DATA$ul_pl)
-sd(DATA$ul_pl)
-
-mean(DATA$ul_fl)
-sd(DATA$ul_fl)
+#DATA = subset(DATA, ACP>1)
 
 
 
-mean(DATA$bl_pl)
-sd(DATA$bl_pl)
+ORIG_DATA = subset(DATA, PDR ==0 & CS==0)
 
-mean(DATA$bl_fl)
-sd(DATA$bl_fl)
+reg = pe ~ MXQ+pch+inter_rank+intra_rank+sd_cons+nonzero_cons
 
-
-
-mean(DATA$pl_fl)
-sd(DATA$pl_fl)
-
-mean(DATA$VB_PATTERN)
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 
+MATCH_DATA = subset(DATA, PDR ==0 & CS==1)
 
-#######################################################################################################################
-DATA = output
-DATA = subset(DATA, CS == 2)
-mean(DATA$ul_size)/50
-mean(DATA$bl_size)/50
-mean(DATA$pl_size)/50
-mean(DATA$fl_size)/50
+reg = pe ~ MXQ+pch+inter_rank+intra_rank+sd_cons+nonzero_cons
+
+reg_data = data.frame(lapply(MATCH_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+
+DIAG_DATA = subset(DATA, PDR ==0 &CS==2)
+
+reg = pe ~ MXQ+pch+inter_rank+intra_rank+sd_cons+nonzero_cons
+
+reg_data = data.frame(lapply(DIAG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+
+
+DIAG_MATCH_DATA = subset(DATA, PDR ==0 &CS==3)
+
+reg = pe ~ MXQ+pch+inter_rank+intra_rank+sd_cons+nonzero_cons
+
+reg_data = data.frame(lapply(DIAG_MATCH_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+
+
+
+
+
+
+
+
+
+
+
