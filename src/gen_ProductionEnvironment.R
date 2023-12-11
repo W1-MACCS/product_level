@@ -168,6 +168,8 @@
     TCU <- colSums(RES_CONS_PAT_TOTAL)
     ##INDIVIDUAL REQUIREMENTS OF THE PRODUCTS * DEMAMD / TRU (Currently like this in Anand et al. 2019)
     RES_CONS_PATp <- sweep((RES_CONS_PAT_TOTAL),2,TCU,"/") #Absolute matrix to relative matrix
+    
+    
     # browser()
     # rescons = melt(RES_CONS_PAT)
     # colnames(rescons) = c("NUMB_PRO","NUMB_RES","value")
@@ -455,7 +457,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     
 
     for(i in 1:NUMB_RES){
-      random_vector =  rnorm(NUMB_PRO, mean = i, sd = i*DENS*2)
+      random_vector =  rnorm(NUMB_PRO, mean = i, sd = i*DENS)
       random_vector = unique(round(abs(random_vector),0))
       random_vector = random_vector[random_vector>0 & random_vector<= NUMB_PRO]
       
@@ -626,7 +628,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     
     
     for(i in 1:NUMB_RES){
-      random_vector =  rnorm(NUMB_PRO, mean = i, sd = i*DENS*2)
+      random_vector =  rnorm(NUMB_PRO, mean = i, sd = i*DENS)
       random_vector = unique(round(abs(random_vector),0))
       random_vector = random_vector[random_vector>0 & random_vector<= NUMB_PRO]
       
@@ -705,6 +707,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     
   }
   
+
   ul = c(1:DISP1)
   bl = c((DISP1+1):NUMB_RES)
   pl = 0
@@ -1562,6 +1565,41 @@ calc_sd_cons <- function(matrix){
 }
 
 
+calc_cons_bigDriver <- function(matrix){
+  
+  if(ncol(matrix)>1){
+    cons_bigDriver = c()
+    for(i in 1:nrow(matrix)){
+      cons_bigDriver[i]= mean(matrix[i,which(CostingSystem_list$ACP>200000)])
+      
+      
+    } 
+    
+  }else if(length(which(CostingSystem_list$ACP>200000))==0){cons_bigDriver==0}else{cons_bigDriver = matrix}
+  
+  
+  return(cons_bigDriver)  
+  
+}
+
+
+calc_cons_smallDriver <- function(matrix){
+  
+  if(ncol(matrix)>1){
+    cons_smallDriver = c()
+    for(i in 1:nrow(matrix)){
+      cons_smallDriver[i]= mean(matrix[i,which(CostingSystem_list$ACP<200000)])
+      
+      
+    } 
+    
+  }else if(length(which(CostingSystem_list$ACP<200000))==0){cons_smallDriver=0}else{cons_smallDriver = 0}
+  
+  
+  return(cons_smallDriver)  
+  
+}
+
 
 calc_ranking <-function(vector){
   
@@ -1577,3 +1615,36 @@ calc_ranking <-function(vector){
   }
   return(ranking_vector)
 }
+
+
+calc_index2 <- function(matrix){
+  if(ncol(matrix)>1){
+    entries = c(1:nrow(matrix))
+    index_2 = sapply(entries, function(x){sum(rowSums(as.matrix(matrix[,which(matrix[x,]>0)]))>0)})
+  }else{
+    
+    index_2 = 1
+  }
+
+  return(index_2)
+} #interference with other function
+
+
+
+
+calc_cons_var <- function(matrix){
+  
+  cons_var = c()
+  if(ncol(matrix)>1){
+    for(i in 1:nrow(matrix)){
+      cons_var[i] = max(abs(matrix[i,]))/sum(abs(abs(matrix[i,])-mean(abs(matrix[i,]))))
+      
+    }
+  }else{cons_var = matrix}
+
+  
+  return(cons_var)
+
+  
+}
+

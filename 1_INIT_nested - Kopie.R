@@ -38,13 +38,14 @@ colnames(FIRM) = c('randID',"FirmID",'NUMB_PRO','NUMB_RES',"DISP1", "DISP2", "DE
 COSTING_SYSTEM = list()
 
 CP = c(1,5,10,15,20)#1,3,6,10,15,20#as in Anand et al. (2017)
-CP_HEURISTIC = c(2)#2 -size-random-misc #as in Anand et al. (2017)
+CP_HEURISTIC = c(1)#2 -size-random-misc #as in Anand et al. (2017)
 CD_HEURISTIC = c(0)#0 - Big Pool #as in Anand et al. (2017)
+ME = c(0)
 
-COSTING_SYSTEM = expand.grid(CP,CP_HEURISTIC,CD_HEURISTIC)
+COSTING_SYSTEM = expand.grid(CP,CP_HEURISTIC,CD_HEURISTIC,ME)
 CostSysID = c(1:nrow(COSTING_SYSTEM))
 COSTING_SYSTEM = cbind(CostSysID,COSTING_SYSTEM)
-colnames(COSTING_SYSTEM) = c('CostSysID','CP','PACP','PDR')
+colnames(COSTING_SYSTEM) = c('CostSysID','CP','PACP','PDR','ME')
 
 ## ====================================== OUTPUT DATA SET ==================================================
 rand = expand.grid(c(1:nrow(COSTING_SYSTEM)),c(1:nrow(FIRM)))
@@ -54,9 +55,9 @@ DATA_2 = dplyr::full_join(COSTING_SYSTEM, rand, by = c('CostSysID' = 'CostSysID'
 
 DATA = dplyr::full_join(DATA_2,FIRM, by = c('randID' = "randID"))
 
-DATA = data.frame(DATA$randID,DATA$FirmID,DATA$CostSysID,DATA$PACP, DATA$CP, DATA$PDR,DATA[,8:15])
+DATA = data.frame(DATA$randID,DATA$FirmID,DATA$CostSysID,DATA$PACP, DATA$CP, DATA$PDR,DATA$ME,DATA[,9:16])
 
-colnames(DATA) = c("randID","FirmID",'CostSysID','PACP','ACP','PDR',"NUMB_RES","DISP1", "DISP2", "DENS", "COR1","COR2","Q_VAR","CS")
+colnames(DATA) = c("randID","FirmID",'CostSysID','PACP','ACP','PDR','ME',"NUMB_RES","DISP1", "DISP2", "DENS", "COR1","COR2","Q_VAR","CS")
 
 
 ## ====================================== MULTI CORE SETTING ==================================================
@@ -132,7 +133,7 @@ output = data.frame()
 preDATA = data.frame()
 
 
-output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dopar% { #dopar
+output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .packages = c('DescTools')) %dopar% { #dopar
 #for(i in 1:nrow(DATA)){
     
       rand_id = DATA$randID[i]
@@ -141,6 +142,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       costsysid = DATA$CostSysID[i]
       pacp = DATA$PACP[i]
       acp = DATA$ACP[i]
+      me = DATA$ME[i]
 
       
   
@@ -170,8 +172,13 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
         ACT_CONS_PAT = MAP_CP_P_VOLUME(CostingSystem_list$RC_to_ACP,MXQ,NUMB_PRO)
       }
       
-      browser()
       
+      if(me>0){
+        ACT_CONS_PAT = apply_ME(ACT_CONS_PAT,me,acp,NUMB_PRO)
+      }
+      
+      
+
       PCH =  ACT_CONS_PAT %*% CostingSystem_list$ACP
       #PCB = RES_CONS_PATp %*% RCC
       PCB = t(FIRM[which(FIRM$randID==DATA$randID[i]),(13:(13+NUMB_PRO-1))])
@@ -193,6 +200,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       
       PE = (PCH-PCB)/PCB
       ERROR = PCH-PCB
+      PERROR = abs(ERROR)/sum(abs(ERROR))
       UC = sum((PCB-PCH)/PCB>0)/NUMB_PRO
       OC = sum((PCB-PCH)/PCB<0)/NUMB_PRO
       
@@ -208,22 +216,25 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       mape = mean(abs(pcb-pch)/pcb)#Anand et al. 2019
       
     
-      UC5 = sum(pe>0.05)
-      OC5 = sum(pe< -0.05)
+      UC5 = sum(pe< -0.05)
+      OC5 = sum(pe> 0.05)
+      UC = sum(pe<0)
+      OC = sum(pe>0)
       acc = 1-((UC5+OC5)/NUMB_PRO)
-      BE_AB =  UC5-OC5
+      BE_AB =  UC5/((UC5+OC5))
       ape = abs(pe)
       pe_factor = abs(pe)/mape
       
       
       #entropy = calc_entropy(ACT_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
-      intra = calc_intra(RES_CONS_PATp) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
-      inter = calc_inter(RES_CONS_PATp) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
+      intra = calc_nonzero_cons(RES_CONS_PATp) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
+      inter = calc_cons_var(RES_CONS_PATp) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
       #complexity = calc_complexity(ACT_CONS_PAT)
-      sd_cons = calc_sd_cons(ACT_CONS_PAT)
+      sd_cons = calc_cons_var(ACT_CONS_PAT)
       act_cons = rowMeans(ACT_CONS_PAT)
       nonzero_cons = 1-(calc_zero_cons(ACT_CONS_PAT)/acp)
-
+      cons_bigDriver = calc_cons_bigDriver(ACT_CONS_PAT)
+      cons_smallDriver = calc_cons_smallDriver(ACT_CONS_PAT)
       
       PCB_rank = rank(PCB,ties.method = "random")
       pcb_rank = rank(pcb,ties.method = "random")
@@ -232,18 +243,30 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       MXQ_rank = rank(MXQ,ties.method = "random")
       pe_rank = rank(pe, ties.method = "random")
       ERROR_rank = rank(ERROR, ties.method = "random")
+      PERROR_rank = rank(PERROR, ties.method = "random")
       intra_rank = calc_ranking(intra)
       inter_rank = calc_ranking(inter)
       #entropy_rank = rank(entropy,ties.method = "random")
       sd_cons_rank = rank(sd_cons,ties.method = "random")
       act_cons_rank = rank(act_cons,ties.method = "random")
       nonzero_cons_rank = rank(nonzero_cons,ties.method = "random")
+      cons_bigDriver_rank =rank(cons_bigDriver,ties.method = "random")
+      cons_smallDriver_rank = rank(cons_smallDriver,ties.method = "random")
       
-      PMH = mean(apply(ACT_CONS_PAT, MARGIN = 2,sd))
-      PMH = sum(calc_complexity(RES_CONS_PAT))
+      #PMH = max(abs(pcb - mean(pcb)))/sum(abs(pcb - mean(pcb)))
+      #PMH = max(abs(pcb))/sum(abs(abs(pcb)-mean(abs(pcb))))
+      PMH = Gini(pcb)
+      #acc =  Gini(abs(error)/sum(abs(error)))
+      error_disp = sum(sort(abs(ERROR),decreasing = TRUE)[c(1:5)])/sum(abs(ERROR))
+      #error_disp = max(abs(pe))/sum(abs(abs(pe)-mean(abs(pe))))
+      #error_disp = Gini(ape)
+      EUCD = sum(abs(ERROR))
+      No_bigDriver = sum(CostingSystem_list$ACP>200000)
+      mean_cons_bigDriver = mean(cons_bigDriver)
       
       #data_logging
       PRODUCT = c(1:NUMB_PRO)
+      UNIQUE_ID = c()
       FIRM_ENV = c()
       COST_SYS = c()
       NUMB_RES_out = c()
@@ -262,7 +285,15 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       CS_out = c()
       Agg_Degr =c()
       PMH_out = c()
+      No_bigDriver_out = c()
+      UC_out = c()
+      OC_out = c()
+      ME_out = c()
+      EUCD_out = c()
+      mean_cons_bigDriver_out = c()
+      error_disp_out = c()
       
+      UNIQUE_ID[PRODUCT] = i
       FIRM_ENV[PRODUCT] = rand_id
       COST_SYS[PRODUCT] = costsysid
       NUMB_RES_out[PRODUCT] = NUMB_RES
@@ -281,16 +312,26 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts) %dop
       CS_out[PRODUCT] = CS
       Agg_Degr[PRODUCT] = Agg_degree
       PMH_out[PRODUCT] = PMH
+      No_bigDriver_out[PRODUCT] = No_bigDriver
+      UC_out[PRODUCT] = UC
+      OC_out[PRODUCT] = OC
+      ME_out[PRODUCT] = me
+      EUCD_out[PRODUCT] = EUCD
+      mean_cons_bigDriver_out[PRODUCT] = mean_cons_bigDriver
+      error_disp_out[PRODUCT] = error_disp
       
-      preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,CS,NUMB_RES_out,PACP_out,ACP_out,PDR_out,Agg_Degr,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,PMH_out,acc_out,MAPE_out,
-                           MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,ERROR_rank,pcb,pcb_rank,pch,pch_rank,pe,pe_rank,error,inter,inter_rank,intra,intra_rank,
-                           sd_cons,sd_cons_rank,nonzero_cons,nonzero_cons_rank,act_cons,act_cons_rank,BE_AB_out,ape) 
+      preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,CS,NUMB_RES_out,PACP_out,ACP_out,PDR_out,ME_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,PMH_out,No_bigDriver_out,acc_out,MAPE_out,
+                           MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,PERROR_rank,pcb,pcb_rank,pch,pch_rank,pe,pe_rank,error,inter,inter_rank,intra,intra_rank,
+                           sd_cons,sd_cons_rank,nonzero_cons,nonzero_cons_rank,act_cons,act_cons_rank,
+                           cons_bigDriver,cons_bigDriver_rank,cons_smallDriver,cons_smallDriver_rank,BE_AB_out,ape,UC_out,OC_out,EUCD_out,mean_cons_bigDriver_out,error_disp_out) 
       
-      colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','CS','NUMB_RES','PACP','ACP','PDR','Agg_Degr','DISP1','DISP2','DENS','COR1','COR2','Q_VAR','PMH',"acc","mape",
-                            'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','ERROR_rank','pcb','pcb_rank','pch','pch_rank','pe','pe_rank','error','inter','inter_rank','intra','intra_rank',
-                            'sd_cons','sd_cons_rank','nonzero_cons','nonzero_cons_rank','act_cons','act_cons_rank',"BE_AB",'ape')
+      colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','CS','NUMB_RES','PACP','ACP','PDR',"ME",'DISP1','DISP2','DENS','COR1','COR2','Q_VAR','VarSize',"NoBigDriver","acc","mape",
+                            'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','PERROR_rank','pcb','pcb_rank','pch','pch_rank','pe','pe_rank','error','inter','inter_rank','intra','intra_rank',
+                            'sd_cons','sd_cons_rank','nonzero_cons','nonzero_cons_rank','act_cons','act_cons_rank',
+                            'cons_bigDriver','cons_bigDriver_rank','cons_smallDriver','cons_smallDriver_rank',"BE_AB",'ape','UC','OC','EUCD','mean_cons_bigDriver','error_disp')
       
-      browser()
+      # if(round(sum(PCH),0)>1000000){stop(paste(c("PCH zu groß",CS,sum(PCH))))}
+      # print(EUCD)
       
 preDATA    
   }

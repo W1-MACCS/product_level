@@ -479,3 +479,22 @@ MAP_CP_P_VOLUME <-function(RC_to_ACP,MXQ, NUMB_PRO){
 
   return(ACT_CONS_PAT)
 }
+
+
+
+
+
+
+apply_ME <-function(ACT_CONS_PAT,ME,CP,NUMB_PRO){
+
+  err_mat = matrix(runif(CP*NUMB_PRO, min = 1-ME, max = 1+ME), nrow = NUMB_PRO, ncol = CP)
+  
+  ACT_CONS_PAT = ACT_CONS_PAT * err_mat
+  
+  ACT_CONS_PAT <- sweep((ACT_CONS_PAT),2,colSums(ACT_CONS_PAT),"/") #Absolute matrix to relative matrix
+  
+  return(ACT_CONS_PAT)
+  
+}
+
+

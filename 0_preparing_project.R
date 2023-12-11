@@ -13,6 +13,7 @@
 library('doParallel')
 library('doSNOW')
 library("MASS")
+library("DescTools")
 
 
 ##############################
