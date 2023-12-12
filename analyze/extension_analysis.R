@@ -17,7 +17,8 @@ DATA$CS[DATA$CS == 4] <- "EAD Structure"
 
 data_pch_rank = aggregate(.~ CS+pch_rank+ACP+FIRM_ENV, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
-data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch","HighVar","HighVar+VolMatch"))
+#data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch","HighVar","HighVar+VolMatch"))
+data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","EAD Structure"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
@@ -44,11 +45,13 @@ DATA$CS[DATA$CS == 0] <- "LowVar"
 DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 DATA$CS[DATA$CS == 2] <- "HighVar"
 DATA$CS[DATA$CS == 3] <- "HighVar+VolMatch"
+DATA$CS[DATA$CS == 4] <- "EAD Structure"
 
 
 data_pch_rank = aggregate(.~ CS+MXQ_rank+ACP, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
-data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch","HighVar","HighVar+VolMatch"))
+#data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch","HighVar","HighVar+VolMatch"))
+data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","EAD Structure"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
