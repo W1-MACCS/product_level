@@ -12,6 +12,7 @@ DATA$CS[DATA$CS == 0] <- "LowVar"
 DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 DATA$CS[DATA$CS == 2] <- "HighVar"
 DATA$CS[DATA$CS == 3] <- "HighVar+VolMatch"
+DATA$CS[DATA$CS == 4] <- "EAD Structure"
 
 
 data_pch_rank = aggregate(.~ CS+pch_rank+ACP+FIRM_ENV, data = DATA, mean)

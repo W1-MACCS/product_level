@@ -15,7 +15,7 @@ DISP2 = c(0.25,0.5,0.75)
 COR1 = c(-1)
 COR2 = c(-1)
 
-CS = c(0,1,2,3)
+CS = c(0,4)
 
 
 
@@ -90,6 +90,10 @@ for(i in 1:nrow(FIRM)){
   }else if(FIRM$CS[i] == 3){
     
     RES_CONS_PAT_list = .gen_RES_CONS_PAT_diag_match(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy)
+    
+  }else if(FIRM$CS[i] == 4){
+    
+    RES_CONS_PAT_list = .gen_RES_CONS_PAT_EAD(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy)
     
   }
 
