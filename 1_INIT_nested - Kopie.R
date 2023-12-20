@@ -10,12 +10,12 @@ NUMB_PRO = c(50)
 NUMB_RES = c(50)
 DISP1 = c(10)
 Q_VAR = c("LOW","MID","HIGH")
-DENS = c(0.25,0.5,0.75)
-DISP2 = c(0.25,0.5,0.75)
+DENS = c(-1)
+DISP2 = c(-1)
 COR1 = c(-1)
 COR2 = c(-1)
 
-CS = c(0,4)
+CS = c(0,1)
 
 
 

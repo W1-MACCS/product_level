@@ -1430,7 +1430,7 @@ cost_hierarchy$ul_fl = ul_fl
       A_PFR[i,c((i+1):ncol(A_PFR))] <- v
     }
     A_PFR <- A_PFR[,c((NUMB_PRO-NUMB_FR):NUMB_PRO)]
-    
+
     #A_FRCM, N_CM=N_P
     A_FRCM <- diag(NUMB_PRO)
     for(i in c(1:(NUMB_PRO-1))){
@@ -1440,7 +1440,7 @@ cost_hierarchy$ul_fl = ul_fl
       A_FRCM[i,c((i+1):ncol(A_FRCM))] <- v
     }
     A_FRCM <- A_FRCM[c(1:ncol(A_PFR)),]
-    
+
     A_PCM <- A_PFR%*%A_FRCM #N_P x N_P dimension
     RES_CONS_PAT <- A_PCM%*%RES_CONS_PAT
     
@@ -1469,13 +1469,13 @@ cost_hierarchy$ul_fl = ul_fl
     RES_CONS_PATp <- sweep((RES_CONS_PAT_TOTAL),2,TCU,"/") #Absolute matrix to relative matrix
     
     
-    # browser()
-    # rescons = melt(RES_CONS_PAT)
-    # colnames(rescons) = c("NUMB_PRO","NUMB_RES","value")
+    browser()
+     rescons = melt(RES_CONS_PAT)
+     colnames(rescons) = c("NUMB_PRO","NUMB_RES","value")
     # 
     # 
-    # ggplot(rescons, aes(x= NUMB_RES,y=NUMB_PRO,fill=value))+geom_tile()+theme_classic()+
-    #   scale_fill_gradientn(colours = c("white","blue"))
+     ggplot(rescons, aes(x= NUMB_RES,y=NUMB_PRO,fill=value))+geom_tile()+theme_classic()+
+     scale_fill_gradientn(colours = c("white","blue"))
     
     ## ===================== EXCEPTION HANDLER ====================
     
