@@ -15,7 +15,7 @@ DATA$CS[DATA$CS == 3] <- "HighVar+VolMatch"
 DATA$CS[DATA$CS == 4] <- "EAD Structure"
 
 
-data_pch_rank = aggregate(.~ CS+pch_rank+ACP+FIRM_ENV, data = DATA, mean)
+data_pch_rank = aggregate(.~ CS+pch_rank+ACP, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
@@ -382,7 +382,7 @@ library(apaTables)
 
 ORIG_DATA = subset(DATA, PDR ==0 & CS==0)
 
-reg = pe ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
+reg = pe ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank+mean_cons+matching_measure
 
 reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
@@ -391,7 +391,7 @@ apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.nu
 
 MATCH_DATA = subset(DATA, PDR ==0 & CS==1)
 
-reg = pe ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
+reg = pe ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank+mean_cons+matching_measure
 
 reg_data = data.frame(lapply(MATCH_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)

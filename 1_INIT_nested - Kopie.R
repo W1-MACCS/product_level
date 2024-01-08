@@ -233,6 +233,8 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       #entropy = calc_entropy(ACT_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
       intra = calc_nonzero_cons(RES_CONS_PATp) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
       inter = calc_cons_var(RES_CONS_PATp) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
+      mean_cons = calc_mean_cons(RES_CONS_PATp)
+      matching_measure = calc_mean_cons(RES_CONS_PATp)*calc_nonzero_cons(RES_CONS_PATp)
       #complexity = calc_complexity(ACT_CONS_PAT)
       sd_cons = calc_cons_var(ACT_CONS_PAT)
       act_cons = rowMeans(ACT_CONS_PAT)
@@ -327,12 +329,12 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,CS,NUMB_RES_out,PACP_out,ACP_out,PDR_out,ME_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,PMH_out,No_bigDriver_out,acc_out,MAPE_out,
                            MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,PERROR_rank,pcb,pcb_rank,pch,pch_rank,pe,pe_rank,error,inter,inter_rank,intra,intra_rank,
                            sd_cons,sd_cons_rank,nonzero_cons,nonzero_cons_rank,act_cons,act_cons_rank,
-                           cons_bigDriver,cons_bigDriver_rank,cons_smallDriver,cons_smallDriver_rank,BE_AB_out,ape,UC_out,OC_out,EUCD_out,mean_cons_bigDriver_out,error_disp_out) 
+                           cons_bigDriver,cons_bigDriver_rank,cons_smallDriver,cons_smallDriver_rank,BE_AB_out,ape,UC_out,OC_out,EUCD_out,mean_cons_bigDriver_out,error_disp_out,mean_cons,matching_measure) 
       
       colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','CS','NUMB_RES','PACP','ACP','PDR',"ME",'DISP1','DISP2','DENS','COR1','COR2','Q_VAR','VarSize',"NoBigDriver","acc","mape",
                             'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','PERROR_rank','pcb','pcb_rank','pch','pch_rank','pe','pe_rank','error','inter','inter_rank','intra','intra_rank',
                             'sd_cons','sd_cons_rank','nonzero_cons','nonzero_cons_rank','act_cons','act_cons_rank',
-                            'cons_bigDriver','cons_bigDriver_rank','cons_smallDriver','cons_smallDriver_rank',"BE_AB",'ape','UC','OC','EUCD','mean_cons_bigDriver','error_disp')
+                            'cons_bigDriver','cons_bigDriver_rank','cons_smallDriver','cons_smallDriver_rank',"BE_AB",'ape','UC','OC','EUCD','mean_cons_bigDriver','error_disp','mean_cons','matching_measure')
       
       # if(round(sum(PCH),0)>1000000){stop(paste(c("PCH zu groß",CS,sum(PCH))))}
       # print(EUCD)
