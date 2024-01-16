@@ -354,7 +354,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     RES_CONS_PAT <- ceiling(abs(RES_CONS_PAT) * 10)
     
     #product portfolio --> matching demand with complexity 
-    complexity = calc_nonzero_cons(RES_CONS_PAT)*calc_mean_cons(RES_CONS_PAT)
+    complexity = calc_nonzero_cons(RES_CONS_PAT)
     complexity_sorted = sort(complexity,decreasing=TRUE,index.return=TRUE)
     mxq_sorted = sort(MXQ,index.return=TRUE)$ix
     
@@ -494,7 +494,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     
     
     #product portfolio --> matching demand with complexity 
-    complexity = calc_inter(RES_CONS_PAT)#*calc_mean_cons(RES_CONS_PAT)
+    complexity = calc_nonzero_cons(RES_CONS_PAT)#*calc_mean_cons(RES_CONS_PAT)
     complexity_sorted = sort(complexity,decreasing=TRUE,index.return=TRUE)
     mxq_sorted = sort(MXQ,index.return=TRUE)$ix
     
@@ -1853,6 +1853,25 @@ calc_inter<-function(matrix){
  
   
   return(inter)
+}
+
+
+
+calc_directed_inter <-function(matrix){
+  
+  
+  inter = calc_inter(matrix)
+  
+  nonzero_cons = calc_nonzero_cons(matrix)
+  
+  mean_nzc = mean(nonzero_cons)
+  
+  nonzero_cons[which(nonzero_cons<mean_nzc)]<- -1
+  nonzero_cons[which(nonzero_cons>=mean_nzc)]<- 1
+ 
+  directed_inter = nonzero_cons*inter
+   
+  return (directed_inter)
 }
 
 calc_nonzero_cons <- function(matrix){

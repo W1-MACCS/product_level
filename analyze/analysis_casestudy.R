@@ -10,14 +10,14 @@ DATA =output
 DATA = output
 #DATA$CS[DATA$CS == 0] <- "CaseStudy"
 
-data_pch_rank = aggregate(.~ pch_rank+ACP, data = DATA, mean)
+data_pch_rank = aggregate(.~ pch_rank+Q_VAR, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = ACP))+geom_line(linewidth=1)+theme_classic()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = Q_VAR))+geom_line(linewidth=1)+theme_classic()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
 
 
 

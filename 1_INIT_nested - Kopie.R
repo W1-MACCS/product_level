@@ -8,14 +8,14 @@ CaseStudy = 1
 NUMB_FIRMS = 50
 NUMB_PRO = c(50)
 NUMB_RES = c(50)
-DISP1 = c(4)
+DISP1 = c(10)
 Q_VAR = c("LOW","MID","HIGH")
 DENS = c(-1)
 DISP2 = c(-1)
 COR1 = c(-1)
 COR2 = c(-1)
 
-CS = c(0)
+CS = c(0,1)
 
 if(CaseStudy ==1){
   
@@ -23,7 +23,8 @@ if(CaseStudy ==1){
   
   NUMB_PRO = nrow(RES_CONS_PAT)
   NUMB_RES = ncol(RES_CONS_PAT)
-  
+  CS = c(0)
+  DISP1 = c(4)
 }
 
 
@@ -47,7 +48,7 @@ colnames(FIRM) = c('randID',"FirmID",'NUMB_PRO','NUMB_RES',"DISP1", "DISP2", "DE
 COSTING_SYSTEM = list()
 
 CP = c(1,5,10,15,20)#1,3,6,10,15,20#as in Anand et al. (2017)
-CP_HEURISTIC = c(1)#2 -size-random-misc #as in Anand et al. (2017)
+CP_HEURISTIC = c(2)#2 -size-random-misc #as in Anand et al. (2017)
 CD_HEURISTIC = c(0)#0 - Big Pool #as in Anand et al. (2017)
 ME = c(0)
 
