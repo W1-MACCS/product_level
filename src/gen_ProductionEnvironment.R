@@ -354,9 +354,9 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     RES_CONS_PAT <- ceiling(abs(RES_CONS_PAT) * 10)
     
     #product portfolio --> matching demand with complexity 
-    complexity = calc_nonzero_cons(RES_CONS_PAT)*rowMeans(RES_CONS_PAT)
+    complexity = calc_individuality(RES_CONS_PAT)
     #complexity = calc_directed_inter(RES_CONS_PAT)
-    complexity_sorted = sort(complexity,decreasing=TRUE,index.return=TRUE)
+    complexity_sorted = sort(complexity,decreasing=FALSE,index.return=TRUE)
     mxq_sorted = sort(MXQ,index.return=TRUE)$ix
     
     RES_CONS_PAT_new = matrix(0, nrow = NUMB_PRO, ncol = NUMB_RES, byrow = TRUE)
@@ -2006,7 +2006,30 @@ calc_directed_inter <-function(matrix){
   return (directed_inter)
 }
 
-calc_individuality <- function(matrix, RCC){
+calc_individuality <- function(matrix){
+  
+  #relative matrix
+  #matrix <- sweep((matrix),2,colSums(matrix),"/") 
+  
+  #find core-resources
+  if(ncol(matrix)>1){
+    core_res = c()
+    for(i in 1:ncol(matrix)){
+      core_res[i]=if(sum(matrix[,i]>0)==nrow(matrix)){1}else{0}
+    }
+  }else{core_res =1}
+  #browser()
+  matrix <- sweep((matrix),1,rowSums(matrix),"/")
+  matrix_core <- matrix[,which(core_res==1)]
+ 
+   if(is.null(ncol(matrix_core))){
+     individuality=matrix_core
+  }else{individuality <- rowSums(matrix_core)}
+ 
+  return(individuality)
+}
+
+calc_cost_core_rel <- function(matrix, RCC){
 
   #relative matrix
   matrix <- sweep((matrix),2,colSums(matrix),"/") 
@@ -2019,7 +2042,8 @@ calc_individuality <- function(matrix, RCC){
       }
   }else{core_res =1}
   
-  matrix_core <- matrix[,core_res]
+  
+  matrix_core <- matrix[,which(core_res==1)]
   RCC_core <- RCC[which(core_res==1)]
   
   cost_total = matrix %*% RCC
