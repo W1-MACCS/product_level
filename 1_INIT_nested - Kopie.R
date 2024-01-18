@@ -1,7 +1,7 @@
 
 ######Nested Design following ABL 2019######
 
-CaseStudy = 1
+CaseStudy = 0
 
 ## ====================================== INPUT FOR FIRM GENERATION ==================================================
 
@@ -9,13 +9,13 @@ NUMB_FIRMS = 50
 NUMB_PRO = c(50)
 NUMB_RES = c(50)
 DISP1 = c(10)
-Q_VAR = c("LOW","MID","HIGH")
-DENS = c(-1)
+Q_VAR = c(-1)
+DENS = c(0.25,0.5,0.75)
 DISP2 = c(-1)
 COR1 = c(-1)
 COR2 = c(-1)
 
-CS = c(0,1)
+CS = c(1)
 
 if(CaseStudy ==1){
   
@@ -23,7 +23,7 @@ if(CaseStudy ==1){
   
   NUMB_PRO = nrow(RES_CONS_PAT)
   NUMB_RES = ncol(RES_CONS_PAT)
-  CS = c(0)
+  CS = c(1)
   DISP1 = c(4)
 }
 
@@ -47,10 +47,10 @@ colnames(FIRM) = c('randID',"FirmID",'NUMB_PRO','NUMB_RES',"DISP1", "DISP2", "DE
 ## ====================================== INPUT FOR COSTING SYSTEM GENERATION ==================================================
 COSTING_SYSTEM = list()
 
-CP = c(1,5,10,15,20)#1,3,6,10,15,20#as in Anand et al. (2017)
-CP_HEURISTIC = c(2)#2 -size-random-misc #as in Anand et al. (2017)
+CP = c(1,3,6,10,15,20)#1,3,6,10,15,20#as in Anand et al. (2017)
+CP_HEURISTIC = c(1)#2 -size-random-misc #as in Anand et al. (2017)
 CD_HEURISTIC = c(0)#0 - Big Pool #as in Anand et al. (2017)
-ME = c(0)
+ME = c(0.3)
 
 COSTING_SYSTEM = expand.grid(CP,CP_HEURISTIC,CD_HEURISTIC,ME)
 CostSysID = c(1:nrow(COSTING_SYSTEM))
@@ -108,9 +108,12 @@ if(CaseStudy==0){
     
   }
 }else if(CaseStudy==1){
-  
-  RES_CONS_PAT_list = .gen_RES_CONS_PAT_Case_match(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy,RES_CONS_PAT)
-  
+  if(FIRM$CS[i]==0){
+    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Case(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy,RES_CONS_PAT)
+  }
+  else if(FIRM$CS[i]==1){
+    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Case_match(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy,RES_CONS_PAT)
+  }
 
   
 }
@@ -246,14 +249,16 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       
       
       #entropy = calc_entropy(ACT_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
-      intra = calc_nonzero_cons(RES_CONS_PATp) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
-      inter = calc_cons_var(RES_CONS_PATp) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
-      mean_cons = calc_mean_cons(RES_CONS_PATp)
+      intra = calc_intra(RES_CONS_PATp) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
+      directed_inter = calc_directed_inter(RES_CONS_PATp) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
       matching_measure = calc_mean_cons(RES_CONS_PATp)*calc_nonzero_cons(RES_CONS_PATp)
       #complexity = calc_complexity(ACT_CONS_PAT)
-      sd_cons = calc_cons_var(ACT_CONS_PAT)
+      driverVar = calc_cons_var(ACT_CONS_PAT)
+      resVar = calc_cons_var(RES_CONS_PAT)
+      mean_cons = rowMeans(RES_CONS_PAT)
+      res_numb = calc_nonzero_cons(RES_CONS_PATp)
       act_cons = rowMeans(ACT_CONS_PAT)
-      nonzero_cons = 1-(calc_zero_cons(ACT_CONS_PAT)/acp)
+      driver_numb = 1-(calc_zero_cons(ACT_CONS_PAT)/acp)
       cons_bigDriver = calc_cons_bigDriver(ACT_CONS_PAT)
       cons_smallDriver = calc_cons_smallDriver(ACT_CONS_PAT)
       
@@ -266,11 +271,14 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       ERROR_rank = rank(ERROR, ties.method = "random")
       PERROR_rank = rank(PERROR, ties.method = "random")
       intra_rank = calc_ranking(intra)
-      inter_rank = calc_ranking(inter)
+      directed_inter_rank = calc_ranking(directed_inter)
       #entropy_rank = rank(entropy,ties.method = "random")
-      sd_cons_rank = rank(sd_cons,ties.method = "random")
+      driverVar_rank = rank(driverVar,ties.method = "random")
+      mean_cons_rank = rank(mean_cons,ties.method = "random")
+      res_numb_rank = rank(res_numb,ties.method = "random")
+      resVar_rank = rank(resVar,ties.method = "random")
       act_cons_rank = rank(act_cons,ties.method = "random")
-      nonzero_cons_rank = rank(nonzero_cons,ties.method = "random")
+      driver_numb_rank = rank(driver_numb,ties.method = "random")
       cons_bigDriver_rank =rank(cons_bigDriver,ties.method = "random")
       cons_smallDriver_rank = rank(cons_smallDriver,ties.method = "random")
       
@@ -344,14 +352,14 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       error_disp_out[PRODUCT] = error_disp
       
       preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,CS,NUMB_RES_out,PACP_out,ACP_out,PDR_out,ME_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,PMH_out,No_bigDriver_out,acc_out,MAPE_out,
-                           MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,PERROR_rank,pcb,pcb_rank,pch,pch_rank,pe,pe_rank,error,inter,inter_rank,intra,intra_rank,
-                           sd_cons,sd_cons_rank,nonzero_cons,nonzero_cons_rank,act_cons,act_cons_rank,
-                           cons_bigDriver,cons_bigDriver_rank,cons_smallDriver,cons_smallDriver_rank,BE_AB_out,ape,UC_out,OC_out,EUCD_out,mean_cons_bigDriver_out,error_disp_out,mean_cons,UC_share_out) 
+                           MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,PERROR_rank,pcb,pcb_rank,pch,pch_rank,pe,pe_rank,error,resVar,resVar_rank,directed_inter,directed_inter_rank,
+                           driverVar,driverVar_rank,mean_cons,mean_cons_rank,res_numb, res_numb_rank, driver_numb,driver_numb_rank,act_cons,act_cons_rank,
+                           cons_bigDriver,cons_bigDriver_rank,cons_smallDriver,cons_smallDriver_rank,BE_AB_out,ape,UC_out,OC_out,EUCD_out,mean_cons_bigDriver_out,error_disp_out,UC_share_out) 
       
       colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','CS','NUMB_RES','PACP','ACP','PDR',"ME",'DISP1','DISP2','DENS','COR1','COR2','Q_VAR','VarSize',"NoBigDriver","acc","mape",
-                            'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','PERROR_rank','pcb','pcb_rank','pch','pch_rank','pe','pe_rank','error','inter','inter_rank','intra','intra_rank',
-                            'sd_cons','sd_cons_rank','nonzero_cons','nonzero_cons_rank','act_cons','act_cons_rank',
-                            'cons_bigDriver','cons_bigDriver_rank','cons_smallDriver','cons_smallDriver_rank',"BE_AB",'ape','UC','OC','EUCD','mean_cons_bigDriver','error_disp','mean_cons','UC_share')
+                            'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','PERROR_rank','pcb','pcb_rank','pch','pch_rank','pe','pe_rank','error','resVar','resVar_rank','directed_inter','intdirected_inter_rank',
+                            'driverVar','driverVar_rank','mean_cons', 'mean_cons_rank','res_numb','res_numb_rank','driver_numb','driver_numb_rank','act_cons','act_cons_rank',
+                            'cons_bigDriver','cons_bigDriver_rank','cons_smallDriver','cons_smallDriver_rank',"BE_AB",'ape','UC','OC','EUCD','mean_cons_bigDriver','error_disp','UC_share')
       
       # if(round(sum(PCH),0)>1000000){stop(paste(c("PCH zu groß",CS,sum(PCH))))}
       # print(EUCD)

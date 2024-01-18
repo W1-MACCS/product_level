@@ -13,26 +13,26 @@ output$UC_share = output$BE_AB
 ###MAPE###########
 
 DATA = output
-DATA$CS[DATA$CS == 0] <- "LowVar"
-DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
-DATA$CS[DATA$CS == 2] <- "HighVar"
-DATA$CS[DATA$CS == 3] <- "HighVar+VolMatch"
+#DATA$CS[DATA$CS == 0] <- "LowVar"
+#DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
+#DATA$CS[DATA$CS == 2] <- "HighVar"
+#DATA$CS[DATA$CS == 3] <- "HighVar+VolMatch"
 #DATA$Q_VAR[DATA$Q_VAR == 1] <- "Low"
 #DATA$Q_VAR[DATA$Q_VAR == 2] <- "Medium"
 #DATA$Q_VAR[DATA$Q_VAR == 3] <- "High"
 
-data_pch_rank = aggregate(.~ ACP+CS, data = DATA, mean)
+data_pch_rank = aggregate(.~ ACP+DENS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
-data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch","HighVar","HighVar+VolMatch"))
+#data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch","HighVar","HighVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 # data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
-data_pch_rank$Q_VAR = factor(data_pch_rank$Q_VAR, levels = c("Low","Medium","High"))
+#data_pch_rank$Q_VAR = factor(data_pch_rank$Q_VAR, levels = c("Low","Medium","High"))
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
 #data_pch_rank$VarSize_class = as.factor(data_pch_rank$VarSize_class)
-ggplot(data_pch_rank, aes(x = ACP, y= BE_AB))+geom_line(aes(y = BE_AB, linetype = CS))+geom_point(aes(shape = CS))+
-  theme_classic()+theme(text = element_text(size=16))+guides(linetype=guide_legend(title="Production Environment"))+guides(shape=guide_legend(title="Production Environment"))+
-  facet_grid()+scale_y_continuous(labels = scales::comma)+ylim(0.5,0.7)+ylab('UC_share')#+geom_hline(yintercept = 25)#+geom_vline(xintercept = 25)ylim(-1,1)
+ggplot(data_pch_rank, aes(x = ACP, y= error_disp))+geom_line(aes(y = error_disp, linetype = DENS))+geom_point(aes(shape = DENS))+
+  theme_classic()+theme(text = element_text(size=16))+guides(linetype=guide_legend(title="Degree of Resource Sharing"))+guides(shape=guide_legend(title="Degree of Resource Sharing"))+
+  facet_grid()+scale_y_continuous(labels = scales::comma)#+geom_hline(yintercept = 25)#+geom_vline(xintercept = 25)ylim(-1,1)
 
 
 
@@ -40,7 +40,7 @@ ggplot(data_pch_rank, aes(x = ACP, y= BE_AB))+geom_line(aes(y = BE_AB, linetype 
 
 
 
-###PCH RANKED PERCENTAGE ERROR###
+#PCH RANKED PERCENTAGE ERROR###
 DATA = output
 DATA$CS[DATA$CS == 0] <- "LowVar"
 DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"

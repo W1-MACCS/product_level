@@ -54,7 +54,7 @@
 .gen_Demand <- function(Q_VAR,NUMB_PRO){
   
   
-  if(Q_VAR == "LOW"){sd = 0.5}else if(Q_VAR == "MID"){sd = 1}else if(Q_VAR=='HIGH'){sd = 1.5}
+  if(Q_VAR == "LOW"){sd = 0.5}else if(Q_VAR == "MID"){sd = 1}else if(Q_VAR=='HIGH'){sd = 1.5}else if(Q_VAR == -1){sd = runif(1,min = 0.5,max =1.5)}
   units = 10^3
   preDemand = rlnorm(NUMB_PRO, meanlog = 1, sdlog = sd) #preDemand is buildup as a -> LogNormal Distribution 
   DEMAND = ceiling((preDemand/sum(preDemand))*units)
@@ -354,7 +354,8 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     RES_CONS_PAT <- ceiling(abs(RES_CONS_PAT) * 10)
     
     #product portfolio --> matching demand with complexity 
-    complexity = calc_nonzero_cons(RES_CONS_PAT)
+    complexity = calc_nonzero_cons(RES_CONS_PAT)*rowMeans(RES_CONS_PAT)
+    #complexity = calc_directed_inter(RES_CONS_PAT)
     complexity_sorted = sort(complexity,decreasing=TRUE,index.return=TRUE)
     mxq_sorted = sort(MXQ,index.return=TRUE)$ix
     
@@ -494,7 +495,8 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     
     
     #product portfolio --> matching demand with complexity 
-    complexity = calc_nonzero_cons(RES_CONS_PAT)#*calc_mean_cons(RES_CONS_PAT)
+    complexity = calc_nonzero_cons(RES_CONS_PAT)*rowMeans(RES_CONS_PAT)
+    #complexity = calc_directed_inter(RES_CONS_PAT)
     complexity_sorted = sort(complexity,decreasing=TRUE,index.return=TRUE)
     mxq_sorted = sort(MXQ,index.return=TRUE)$ix
     
@@ -573,6 +575,136 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
   
   
 }
+
+.gen_RES_CONS_PAT_Case <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy, RES_CONS_PAT) {
+  
+  RES_CONS_PAT_list = list()
+  
+  ## ====================== STEP 0.b Determining the density (DENS)  =========================
+  #Randomization and setting clear design points. 
+  
+  if(DENS == -1)
+  {
+    DENS_MIN = 0.4;
+    DENS_MAX = 0.7;
+    DENS = runif(1, DENS_MIN, DENS_MAX);
+  }
+  
+  DENS_draw = DENS
+  
+  ## ====================== STEP 1 BASELINE NORM ========================= 
+  
+  
+  ## ====================== STEP 1.a CORRELATION ========================= 
+  # Products and Resource are transposed in constrast to Anand 2019 but there is no issue in the model
+  # Rows Products Colums Resources
+  
+  
+  
+  # Correlation of the top [DISP1] resources
+  if(COR1 == -1){
+    COR1 <- runif(1, -0.2, 0.8)
+  }
+  COR1_draw = COR1
+  sqrt_const_1 <- sqrt(1 - (COR1 * COR1))
+  
+  # Correlation of the remaining resources
+  if(COR2 == -1){
+    COR2 <- runif(1, -0.8, 0.2)
+  }
+  COR2_draw = COR2
+  sqrt_const_2 <- sqrt(1 - (COR2 * COR2))
+  
+  ####CASE STUDY LOADING#######
+  
+  
+  
+  
+  
+  
+  
+  #product portfolio --> matching demand with complexity 
+  complexity = calc_nonzero_cons(RES_CONS_PAT)*rowMeans(RES_CONS_PAT)
+  #complexity = calc_directed_inter(RES_CONS_PAT)
+  complexity_sorted = sort(complexity,decreasing=TRUE,index.return=TRUE)
+  mxq_sorted = sort(MXQ,index.return=TRUE)$ix
+  
+  RES_CONS_PAT_new = RES_CONS_PAT
+  
+  
+  for(i in 1:length(complexity)){
+    
+    complexity_index = complexity_sorted$ix[i]
+    RES_CONS_PAT_new[mxq_sorted[i],] <- RES_CONS_PAT[complexity_index,]
+    
+  }
+  #RES_CONS_PAT = RES_CONS_PAT_new
+  
+  # 
+  ##INDIVIDUAL REQUIREMENTS OF THE PRODUCTS * DEMAND
+  #RES_CONS_PAT_TOTAL = RES_CONS_PAT*MXQ
+  RES_CONS_PAT_TOTAL <- sweep(RES_CONS_PAT,MARGIN = 1,MXQ,'*')     #does this needs to be a matrix multiplication?
+  ##CALCULATING TCU
+  TCU <- colSums(RES_CONS_PAT_TOTAL)
+  ##INDIVIDUAL REQUIREMENTS OF THE PRODUCTS * DEMAMD / TRU (Currently like this in Anand et al. 2019)
+  RES_CONS_PATp <- sweep((RES_CONS_PAT_TOTAL),2,TCU,"/") #Absolute matrix to relative matrix
+  
+  
+  
+  ul = c(1:DISP1)
+  bl = c((DISP1+1):NUMB_RES)
+  pl = 0
+  fl = 0
+  
+  
+  
+  # ul_bl = mean(cor(RES_CONS_PATp[,ul],RES_CONS_PATp[,bl]))
+  # bl_pl = mean(cor(RES_CONS_PATp[,bl],RES_CONS_PATp[,pl]))
+  # ul_pl = mean(cor(RES_CONS_PATp[,ul],RES_CONS_PATp[,pl]))
+  # bl_fl = mean(cor(RES_CONS_PATp[,bl],RES_CONS_PATp[,fl]))
+  # pl_fl = mean(cor(RES_CONS_PATp[,pl],RES_CONS_PATp[,fl]))
+  # ul_fl = mean(cor(RES_CONS_PATp[,ul],RES_CONS_PATp[,fl]))
+  # 
+  
+  ul_bl = cor(rowMeans(RES_CONS_PATp[,ul]),rowMeans(RES_CONS_PATp[,bl]))
+  bl_pl = cor(rowMeans(RES_CONS_PATp[,bl]),rowMeans(RES_CONS_PATp[,pl]))
+  ul_pl = cor(rowMeans(RES_CONS_PATp[,ul]),rowMeans(RES_CONS_PATp[,pl]))
+  bl_fl = cor(rowMeans(RES_CONS_PATp[,bl]),rowMeans(RES_CONS_PATp[,fl]))
+  pl_fl = cor(rowMeans(RES_CONS_PATp[,pl]),rowMeans(RES_CONS_PATp[,fl]))
+  ul_fl = cor(rowMeans(RES_CONS_PATp[,ul]),rowMeans(RES_CONS_PATp[,fl]))
+  mxq_ul = cor(MXQ,rowMeans(RES_CONS_PATp[,ul]))
+  mxq_bl = cor(MXQ,rowMeans(RES_CONS_PATp[,bl]))
+  mxq_pl = cor(MXQ,rowMeans(RES_CONS_PATp[,pl]))
+  mxq_fl = cor(MXQ,rowMeans(RES_CONS_PATp[,fl]))
+  
+  
+  cost_hierarchy$ul = ul
+  cost_hierarchy$bl = bl
+  cost_hierarchy$pl = pl
+  cost_hierarchy$fl = fl
+  
+  cost_hierarchy$ul_bl = ul_bl
+  cost_hierarchy$bl_pl = bl_pl
+  cost_hierarchy$ul_pl = ul_pl
+  cost_hierarchy$bl_fl = bl_fl
+  cost_hierarchy$pl_fl = pl_fl
+  cost_hierarchy$ul_fl = ul_fl
+  
+  RES_CONS_PAT_list$DENS = DENS_draw
+  RES_CONS_PAT_list$COR1 = COR1_draw
+  RES_CONS_PAT_list$COR2 = COR2_draw
+  RES_CONS_PAT_list$non_unit_size = 0 #all costs are unit-level
+  RES_CONS_PAT_list$RES_CONS_PAT = as.matrix(RES_CONS_PAT)
+  RES_CONS_PAT_list$RES_CONS_PAT_TOTAL = as.matrix(RES_CONS_PAT_TOTAL)
+  RES_CONS_PAT_list$RES_CONS_PATp = as.matrix(RES_CONS_PATp)
+  RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
+  #
+  #
+  return(RES_CONS_PAT_list)
+  
+  
+}
+
 
 
 .gen_RES_CONS_PAT_diag <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy) {

@@ -9,27 +9,30 @@ DATA =output
 ###PCH RANKED PERCENTAGE ERROR###
 DATA = output
 #DATA$CS[DATA$CS == 0] <- "CaseStudy"
+DATA$CS[DATA$CS == 1] <- "CaseStudy+VolMatch"
 
-data_pch_rank = aggregate(.~ pch_rank+Q_VAR, data = DATA, mean)
+data_pch_rank = aggregate(.~ pch_rank+Q_VAR+CS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = Q_VAR))+geom_line(linewidth=1)+theme_classic()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = Q_VAR))+geom_line(linewidth=1)+facet_wrap(~CS)+theme_classic()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
 
 
 
 ###MXQ RANKED PERCENTAGE ERROR###
 DATA = output
-
-data_pch_rank = aggregate(.~Q_VAR+MXQ_rank+ACP, data = DATA, mean)
+#DATA$CS[DATA$CS == 0] <- "CaseStudy"
+DATA$CS[DATA$CS == 1] <- "CaseStudy+VolMatch"
+data_pch_rank = aggregate(.~ACP+MXQ_rank+CS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
-ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_wrap(~Q_VAR)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_wrap(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 
@@ -75,12 +78,8 @@ ggplot(data_pch_rank, aes(x = intra_rank, y= pe))+geom_line()+theme_classic()+ge
 
 ###NONZERO RANKED PERCENTAGE ERROR###
 DATA = subset(output, ACP>=3)
-DATA$CS[DATA$CS == 0] <- "LowVar"
-DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
-DATA$CS[DATA$CS == 2] <- "HighVar"
-DATA$CS[DATA$CS == 3] <- "HighVar+VolMatch"
 
-data_pch_rank = aggregate(.~ CS+nonzero_cons_rank+DENS, data = DATA, mean)
+data_pch_rank = aggregate(.~ CS+nonzero_cons_rank, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
@@ -88,7 +87,7 @@ data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = nonzero_cons_rank, y= pe, linetype = DENS))+geom_line()+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = nonzero_cons_rank, y= pe))+geom_line()+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 ###SD CONS RANKED PERCENTAGE ERROR###
@@ -102,6 +101,34 @@ data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
 ggplot(data_pch_rank, aes(x = sd_cons_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
+
+###Mean CONS RANKED PERCENTAGE ERROR###
+DATA = output
+
+data_pch_rank = aggregate(.~ mean_cons_rank+Q_VAR, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+data_pch_rank$ME = as.factor(data_pch_rank$ME)
+ggplot(data_pch_rank, aes(x = mean_cons_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
+
+
+###numb_res RANKED PERCENTAGE ERROR###
+DATA = output
+
+data_pch_rank = aggregate(.~ res_numb_rank+Q_VAR, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+data_pch_rank$ME = as.factor(data_pch_rank$ME)
+ggplot(data_pch_rank, aes(x = res_numb_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
 
 
 
@@ -119,6 +146,34 @@ data_pch_rank$ME = as.factor(data_pch_rank$ME)
 ggplot(data_pch_rank, aes(x = cons_bigDriver_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+facet_grid(~ACP)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
 
 
+###numb DRIVER RANKED PERCENTAGE ERROR###
+DATA = subset(output, ACP>=3)
+
+
+data_pch_rank = aggregate(.~driver_numb_rank+Q_VAR+ACP, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+data_pch_rank$ME = as.factor(data_pch_rank$ME)
+ggplot(data_pch_rank, aes(x = driver_numb_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+facet_grid(~ACP)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
+
+
+
+
+###DriverVar RANKED PERCENTAGE ERROR###
+DATA = subset(output, ACP>=3)
+
+
+data_pch_rank = aggregate(.~driverVar_rank+Q_VAR+ACP, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+data_pch_rank$ME = as.factor(data_pch_rank$ME)
+ggplot(data_pch_rank, aes(x = driverVar_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+facet_grid(~ACP)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
 
 
 
@@ -322,17 +377,22 @@ DATA = output
 library(apaTables)
 
 
-ORIG_DATA = DATA
+ORIG_DATA = subset(DATA, PDR ==0 & CS==0)
 
-reg = pe ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank
+reg = pe ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb
 
 reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 
+MATCH_DATA = subset(DATA, PDR ==0 & CS==1)
 
+reg = pe ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb+directed_inter
 
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 scatter.smooth(DATA$pe,DATA$MXQ)
 
