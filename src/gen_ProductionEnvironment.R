@@ -2006,6 +2006,30 @@ calc_directed_inter <-function(matrix){
   return (directed_inter)
 }
 
+calc_individuality <- function(matrix, RCC){
+
+  #relative matrix
+  matrix <- sweep((matrix),2,colSums(matrix),"/") 
+  
+  #find core-resources
+  if(ncol(matrix)>1){
+    core_res = c()
+    for(i in 1:ncol(matrix)){
+      core_res[i]=if(sum(matrix[,i]>0)==nrow(matrix)){1}else{0}
+      }
+  }else{core_res =1}
+  
+  matrix_core <- matrix[,core_res]
+  RCC_core <- RCC[which(core_res==1)]
+  
+  cost_total = matrix %*% RCC
+  cost_core_res = matrix_core %*% RCC_core
+  
+  cost_core_rel = cost_core_res/cost_total
+
+  return(cost_core_rel)
+}
+
 calc_nonzero_cons <- function(matrix){
   
   
