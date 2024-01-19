@@ -2033,12 +2033,12 @@ calc_cost_core_rel <- function(matrix, RCC){
 
   #relative matrix
   matrix <- sweep((matrix),2,colSums(matrix),"/") 
-  
+  core_size = 1
   #find core-resources
   if(ncol(matrix)>1){
     core_res = c()
     for(i in 1:ncol(matrix)){
-      core_res[i]=if(sum(matrix[,i]>0)==nrow(matrix)){1}else{0}
+      core_res[i]=if(sum(matrix[,i]>0)>=round(core_size*nrow(matrix))){1}else{0}
       }
   }else{core_res =1}
   
@@ -2047,11 +2047,17 @@ calc_cost_core_rel <- function(matrix, RCC){
   RCC_core <- RCC[which(core_res==1)]
   
   cost_total = matrix %*% RCC
-  cost_core_res = matrix_core %*% RCC_core
+  if(is.null(ncol(matrix_core))){
+    cost_core_res = matrix_core * RCC_core
+  }else{
+    cost_core_res = matrix_core %*% RCC_core
+  }
   
-  cost_core_rel = cost_core_res/cost_total
+  ret = list()
+  ret$cost_core_rel = cost_core_res/cost_total
+  ret$numb_core_res = sum(core_res)
 
-  return(cost_core_rel)
+  return(ret)
 }
 
 calc_nonzero_cons <- function(matrix){
