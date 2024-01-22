@@ -130,8 +130,10 @@ if(CaseStudy==0){
   FIRM$COR2[i] = RES_CONS_PAT_list$COR2
   FIRM$non_unit_size[i] = RES_CONS_PAT_list$non_unit_size
   FIRM$DISP2[i] = RCC_list$DISP2_draw
-  FIRM[i,13:(13+FIRM$NUMB_PRO[i]-1)] = PCB
-  FIRM[i,(13+FIRM$NUMB_PRO[i]):(13+FIRM$NUMB_PRO[i]+FIRM$NUMB_PRO[i]-1)] = MXQ
+  FIRM$standard_res_size[i] = standard_res_size
+  FIRM[i,14:(14+FIRM$NUMB_PRO[i]-1)] = PCB
+  FIRM[i,(14+FIRM$NUMB_PRO[i]):(14+FIRM$NUMB_PRO[i]+FIRM$NUMB_PRO[i]-1)] = MXQ
+  
 
   
   DATA_list$RES_CONS_PATp[[i]] = RES_CONS_PAT_list$RES_CONS_PATp
@@ -164,6 +166,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       pacp = DATA$PACP[i]
       acp = DATA$ACP[i]
       me = DATA$ME[i]
+      
 
       
   
@@ -202,8 +205,8 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
 
       PCH =  ACT_CONS_PAT %*% CostingSystem_list$ACP
       #PCB = RES_CONS_PATp %*% RCC
-      PCB = t(FIRM[which(FIRM$randID==DATA$randID[i]),(13:(13+NUMB_PRO-1))])
-      MXQ = t(FIRM[which(FIRM$randID==DATA$randID[i]),(13+NUMB_PRO):(13+NUMB_PRO+NUMB_PRO-1)])
+      PCB = t(FIRM[which(FIRM$randID==DATA$randID[i]),(14:(14+NUMB_PRO-1))])
+      MXQ = t(FIRM[which(FIRM$randID==DATA$randID[i]),(14+NUMB_PRO):(14+NUMB_PRO+NUMB_PRO-1)])
       DENS = FIRM[which(FIRM$randID == DATA$randID[i]),]$DENS
       COR1 = FIRM[which(FIRM$randID == DATA$randID[i]),]$COR1
       COR2 = FIRM[which(FIRM$randID == DATA$randID[i]),]$COR2
@@ -211,6 +214,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       DISP2 = FIRM[which(FIRM$randID == DATA$randID[i]),]$DISP2
       Q_VAR = FIRM[which(FIRM$randID == DATA$randID[i]),]$Q_VAR
       CS = FIRM[which(FIRM$randID == DATA$randID[i]),]$CS
+      standard_res_size = FIRM[which(FIRM$randID == DATA$randID[i]),]$standard_res_size
       non_unit_size = FIRM[which(FIRM$randID == DATA$randID[i]),]$non_unit_size
       #if(CS ==0){CS_levels = 0}else{CS_levels=1}
       #else if(non_unit_size<0.33){CS_levels = "LOW"}else if(non_unit_size>0.46){CS_levels = "HIGH"}else{CS_levels = "MID"}
@@ -251,9 +255,9 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       #entropy = calc_entropy(ACT_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
       intra = calc_intra(RES_CONS_PATp) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
       directed_inter = calc_directed_inter(RES_CONS_PATp) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
-      cost_core_list = calc_cost_core_rel(RES_CONS_PATp,RCC) #Relative Costs of Core Resources
-      cost_core_rel = cost_core_list$cost_core_rel
-      numb_core_res = cost_core_list$numb_core_res
+      cost_core_list = calc_cost_core_rel(RES_CONS_PATp,RCC,standard_res_size) #Relative Costs of Core Resources
+      cost_share_standard_res = cost_core_list$cost_core_rel
+      numb_standard_res = cost_core_list$numb_core_res
       #complexity = calc_complexity(ACT_CONS_PAT)
       driverVar = calc_cons_var(ACT_CONS_PAT)
       resVar = calc_cons_var(RES_CONS_PAT)
@@ -278,6 +282,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       driverVar_rank = rank(driverVar,ties.method = "random")
       mean_cons_rank = rank(mean_cons,ties.method = "random")
       res_numb_rank = rank(res_numb,ties.method = "random")
+      cost_share_standard_res_rank = rank(cost_share_standard_res,ties.method = "random")
       resVar_rank = rank(resVar,ties.method = "random")
       act_cons_rank = rank(act_cons,ties.method = "random")
       driver_numb_rank = rank(driver_numb,ties.method = "random")
@@ -324,7 +329,8 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       EUCD_out = c()
       mean_cons_bigDriver_out = c()
       error_disp_out = c()
-      numb_core_res_out = c()
+      numb_standard_res_out = c()
+      standard_res_size_out = c()
       
       UNIQUE_ID[PRODUCT] = i
       FIRM_ENV[PRODUCT] = rand_id
@@ -353,17 +359,18 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       EUCD_out[PRODUCT] = EUCD
       mean_cons_bigDriver_out[PRODUCT] = mean_cons_bigDriver
       error_disp_out[PRODUCT] = error_disp
-      numb_core_res_out[PRODUCT] = numb_core_res
+      numb_standard_res_out[PRODUCT] = numb_standard_res
+      standard_res_size_out[PRODUCT] = standard_res_size
       
       preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,CS,NUMB_RES_out,PACP_out,ACP_out,PDR_out,ME_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,PMH_out,No_bigDriver_out,acc_out,MAPE_out,
                            MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,PERROR_rank,pcb,pcb_rank,pch,pch_rank,pe,pe_rank,error,resVar,resVar_rank,directed_inter,directed_inter_rank,
                            driverVar,driverVar_rank,mean_cons,mean_cons_rank,res_numb, res_numb_rank, driver_numb,driver_numb_rank,act_cons,act_cons_rank,
-                           cons_bigDriver,cons_bigDriver_rank,cons_smallDriver,cons_smallDriver_rank,BE_AB_out,ape,UC_out,OC_out,EUCD_out,mean_cons_bigDriver_out,error_disp_out,UC_share_out,cost_core_rel,numb_core_res_out) 
+                           cons_bigDriver,cons_bigDriver_rank,cons_smallDriver,cons_smallDriver_rank,BE_AB_out,ape,UC_out,OC_out,EUCD_out,mean_cons_bigDriver_out,error_disp_out,UC_share_out,cost_share_standard_res,cost_share_standard_res_rank,numb_standard_res_out,standard_res_size_out) 
       
       colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','CS','NUMB_RES','PACP','ACP','PDR',"ME",'DISP1','DISP2','DENS','COR1','COR2','Q_VAR','VarSize',"NoBigDriver","acc","mape",
                             'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','PERROR_rank','pcb','pcb_rank','pch','pch_rank','pe','pe_rank','error','resVar','resVar_rank','directed_inter','intdirected_inter_rank',
                             'driverVar','driverVar_rank','mean_cons', 'mean_cons_rank','res_numb','res_numb_rank','driver_numb','driver_numb_rank','act_cons','act_cons_rank',
-                            'cons_bigDriver','cons_bigDriver_rank','cons_smallDriver','cons_smallDriver_rank',"BE_AB",'ape','UC','OC','EUCD','mean_cons_bigDriver','error_disp','UC_share','cost_core_rel','numb_core_res')
+                            'cons_bigDriver','cons_bigDriver_rank','cons_smallDriver','cons_smallDriver_rank',"BE_AB",'ape','UC','OC','EUCD','mean_cons_bigDriver','error_disp','UC_share','cost_share_standard_res','cost_share_standard_res_rank','numb_standard_res','standard_res_size')
       
       # if(round(sum(PCH),0)>1000000){stop(paste(c("PCH zu groß",CS,sum(PCH))))}
       # print(EUCD)

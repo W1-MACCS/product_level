@@ -51,6 +51,27 @@ data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
+###Cost Share Standard Ressources RANKED PERCENTAGE ERROR###
+DATA = output
+#DATA$CS[DATA$CS == 0] <- "LowVar"
+#DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
+
+
+data_pch_rank = aggregate(.~ DENS+cost_share_standard_res_rank+ACP, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+#data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+ggplot(data_pch_rank, aes(x = cost_share_standard_res_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
+
+
+
+
+
+
 
 ###INTER RANKED PERCENTAGE ERROR###
 DATA = output
@@ -384,7 +405,18 @@ apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.nu
 
 MATCH_DATA = subset(DATA, PDR ==0 & CS==1)
 
-reg = pe ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb+directed_inter
+reg = pe ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb+cost_core_rel
+
+reg_data = data.frame(lapply(MATCH_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+
+
+
+MATCH_DATA = subset(DATA, PDR ==0 & CS==1)
+
+reg = ape ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb+cost_core_rel
 
 reg_data = data.frame(lapply(MATCH_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
