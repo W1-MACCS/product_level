@@ -12,15 +12,14 @@ DATA = output
 #DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 
 
-data_pch_rank = aggregate(.~ Q_VAR+pch_rank+ACP, data = DATA, mean)
+data_pch_rank = aggregate(.~ DENS+pch_rank+ACP, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 #data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
-data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
-data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = ACP))+geom_line(linewidth=1)+theme_classic()+facet_grid(~Q_VAR)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+data_pch_rank$ME = as.factor(data_pch_rank$Q_VAR)
+ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = ACP))+geom_line(linewidth=1)+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
 
 
 # summary(subset(DATA, DENS == 0.25)$nonzero_cons)/50
@@ -155,7 +154,7 @@ DATA$CS[DATA$CS == 0] <- "LowVar"
 DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 
 
-data_pch_rank = aggregate(.~ CS+driverVar_rank+ACP, data = DATA, mean)
+data_pch_rank = aggregate(.~ DENS+driverVar_rank+ACP, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
@@ -163,8 +162,7 @@ data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = driverVar_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
-
+ggplot(data_pch_rank, aes(x = driverVar_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 ###cons BigDriver RANKED PERCENTAGE ERROR###
@@ -173,7 +171,7 @@ DATA$PERROR = abs(DATA$ERROR)/1000000
 #DATA$CS[DATA$CS == 0] <- "LowVar"
 #DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 
-data_pch_rank = aggregate(.~ CS+cons_bigDriver_rank+DENS, data = DATA, mean)
+data_pch_rank = aggregate(.~ CS+cons_bigDriver_rank+ACP+DENS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 #data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
@@ -181,7 +179,7 @@ data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = cons_bigDriver_rank, y= pe, linetype = DENS))+geom_line()+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = cons_bigDriver_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
 
 
 
