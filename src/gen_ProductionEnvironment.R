@@ -273,7 +273,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
   
 }
 
-.gen_RES_CONS_PAT_Anand_match <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy) {
+.gen_RES_CONS_PAT_Anand_match <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy,standard_res_size) {
   
   RES_CONS_PAT_list = list()
   
@@ -354,8 +354,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     RES_CONS_PAT <- ceiling(abs(RES_CONS_PAT) * 10)
     
     #product portfolio --> matching demand with complexity 
-    complexity = calc_individuality(RES_CONS_PAT)
-    #complexity = calc_directed_inter(RES_CONS_PAT)
+    complexity = calc_individuality(RES_CONS_PAT,standard_res_size)
     complexity_sorted = sort(complexity,decreasing=FALSE,index.return=TRUE)
     mxq_sorted = sort(MXQ,index.return=TRUE)$ix
     
@@ -447,7 +446,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
   
 }
 
-.gen_RES_CONS_PAT_Case_match <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy, RES_CONS_PAT) {
+.gen_RES_CONS_PAT_Case_match <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy, RES_CONS_PAT, standard_res_size) {
   
   RES_CONS_PAT_list = list()
   
@@ -495,9 +494,8 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     
     
     #product portfolio --> matching demand with complexity 
-    complexity = calc_nonzero_cons(RES_CONS_PAT)*rowMeans(RES_CONS_PAT)
-    #complexity = calc_directed_inter(RES_CONS_PAT)
-    complexity_sorted = sort(complexity,decreasing=TRUE,index.return=TRUE)
+    complexity = calc_individuality(RES_CONS_PAT,standard_res_size)
+    complexity_sorted = sort(complexity,decreasing=FALSE,index.return=TRUE)
     mxq_sorted = sort(MXQ,index.return=TRUE)$ix
     
     RES_CONS_PAT_new = RES_CONS_PAT
@@ -878,7 +876,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
   
 }
 
-.gen_RES_CONS_PAT_diag_match <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy) {
+.gen_RES_CONS_PAT_diag_match <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy,standard_res_size) {
   
   RES_CONS_PAT_list = list()
   
@@ -2006,19 +2004,19 @@ calc_directed_inter <-function(matrix){
   return (directed_inter)
 }
 
-calc_individuality <- function(matrix){
+calc_individuality <- function(matrix,standard_res_size){
   
   #relative matrix
   #matrix <- sweep((matrix),2,colSums(matrix),"/") 
-  
+  core_size = standard_res_size
   #find core-resources
   if(ncol(matrix)>1){
     core_res = c()
     for(i in 1:ncol(matrix)){
-      core_res[i]=if(sum(matrix[,i]>0)==nrow(matrix)){1}else{0}
+      core_res[i]=if(sum(matrix[,i]>0)>round(core_size*nrow(matrix))){1}else{0}
     }
   }else{core_res =1}
-  #browser()
+
   matrix <- sweep((matrix),1,rowSums(matrix),"/")
   matrix_core <- matrix[,which(core_res==1)]
  
@@ -2029,11 +2027,11 @@ calc_individuality <- function(matrix){
   return(individuality)
 }
 
-calc_cost_core_rel <- function(matrix, RCC){
+calc_cost_core_rel <- function(matrix, RCC, standard_res_size){
 
   #relative matrix
   matrix <- sweep((matrix),2,colSums(matrix),"/") 
-  core_size = 1
+  core_size = standard_res_size
   #find core-resources
   if(ncol(matrix)>1){
     core_res = c()

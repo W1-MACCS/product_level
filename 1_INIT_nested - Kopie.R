@@ -10,7 +10,7 @@ NUMB_PRO = c(50)
 NUMB_RES = c(50)
 DISP1 = c(10)
 Q_VAR = c(-1)
-DENS = c(-1)
+DENS = c(0.25, 0.5, 0.75)
 DISP2 = c(-1)
 COR1 = c(-1)
 COR2 = c(-1)
@@ -83,7 +83,7 @@ for(i in 1:nrow(FIRM)){
   MXQ = .gen_Demand(FIRM$Q_VAR[i],FIRM$NUMB_PRO[i])
   #cost_hierarchy = .gen_cost_hierarchy()
   cost_hierarchy = list()
-
+  standard_res_size = runif(1,0.5,1)  #Parameter for VolMatch
   
 if(CaseStudy==0){
   if(FIRM$CS[i] == 0){
@@ -96,7 +96,7 @@ if(CaseStudy==0){
     
   }else if(FIRM$CS[i] == 1){
     
-    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Anand_match(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy)
+    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Anand_match(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy,standard_res_size)
     
   }else if(FIRM$CS[i] == 3){
     
@@ -112,7 +112,7 @@ if(CaseStudy==0){
     RES_CONS_PAT_list = .gen_RES_CONS_PAT_Case(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy,RES_CONS_PAT)
   }
   else if(FIRM$CS[i]==1){
-    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Case_match(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy,RES_CONS_PAT)
+    RES_CONS_PAT_list = .gen_RES_CONS_PAT_Case_match(FIRM$NUMB_PRO[i],FIRM$NUMB_RES[i], FIRM$DENS[i], FIRM$DISP1[i],FIRM$COR1[i],FIRM$COR2[i],MXQ,cost_hierarchy,RES_CONS_PAT,standard_res_size)
   }
 
   
