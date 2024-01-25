@@ -30,13 +30,53 @@ data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 #data_pch_rank$Q_VAR = factor(data_pch_rank$Q_VAR, levels = c("Low","Medium","High"))
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
 #data_pch_rank$VarSize_class = as.factor(data_pch_rank$VarSize_class)
-ggplot(data_pch_rank, aes(x = ACP, y= error_disp))+geom_line(aes(y = error_disp, linetype = DENS))+geom_point(aes(shape = DENS))+
+ggplot(data_pch_rank, aes(x = ACP, y= cost_share_standard_res))+geom_line(aes(y = cost_share_standard_res, linetype = DENS))+geom_point(aes(shape = DENS))+
   theme_classic()+theme(text = element_text(size=16))+guides(linetype=guide_legend(title="Degree of Resource Sharing"))+guides(shape=guide_legend(title="Degree of Resource Sharing"))+
   facet_grid()+scale_y_continuous(labels = scales::comma)#+geom_hline(yintercept = 25)#+geom_vline(xintercept = 25)ylim(-1,1)
 
 
+#kp was ich hier mache
+DATA = output
+
+data_a=aggregate(.~ DENS, data = DATA, mean)
+#data_a$cost_share_standard_res = as.factor(data_a$cost_share_standard_res)
+
+cost_data = subset(output, cost_share_standard_res < data_a$cost_share_standard_res[1] & DENS ==0.25)
+mean_PCH = mean(cost_data$PCH)
+share = length(cost_data$PCH)/15000
+print(mean_PCH)
+print(share)
+
+cost_data = subset(output, cost_share_standard_res < data_a$cost_share_standard_res[2] & DENS ==0.5)
+mean_PCH = mean(cost_data$PCH)
+share = length(cost_data$PCH)/15000
+print(mean_PCH)
+print(share)
+
+cost_data = subset(output, cost_share_standard_res < data_a$cost_share_standard_res[3] & DENS ==0.75)
+mean_PCH = mean(cost_data$PCH)
+share = length(cost_data$PCH)/15000
+print(mean_PCH)
+print(share)
+
+###############################################################################################################
+
+##Correlation MATRIX
+
+DATA = output
 
 
+library(apaTables)
+DATA$CS = as.numeric(DATA$CS)
+DATA$PDR = as.numeric(DATA$PDR)
+DATA$ACP = as.numeric(DATA$ACP)
+DATA$Q_VAR = as.numeric(DATA$Q_VAR)
+DATA$DENS = as.numeric(DATA$DENS)
+
+
+cor_data= data.frame(DATA$DENS,DATA$ACP,DATA$individuality,DATA$cost_share_standard_res,DATA$driver_numb,DATA$ape,DATA$UC_share,DATA$EUCD)
+colnames(cor_data) = c("DENS","ACP","individuality","cost_share_standard_res","#driver","ape","UC_share","EUCD")
+apa.cor.table(cor_data,filename = paste0("cor",".doc"), table.number = 1)
 
 
 
@@ -395,13 +435,6 @@ ggplot(DATA,aes(x = EUCD,y=error_disp))+geom_point(aes(shape = Q_VAR, color=Q_VA
 
 DATA = output
 
-DATA$Q_VAR = as.character(DATA$Q_VAR)
-
-DATA$Q_VAR[DATA$Q_VAR == "LOW"] <- 1
-DATA$Q_VAR[DATA$Q_VAR == "MID"] <- 2
-DATA$Q_VAR[DATA$Q_VAR == "HIGH"] <- 3
-
-
 
 library(apaTables)
 DATA$CS = as.numeric(DATA$CS)
@@ -411,8 +444,8 @@ DATA$Q_VAR = as.numeric(DATA$Q_VAR)
 DATA$DENS = as.numeric(DATA$DENS)
 
 
-cor_data= data.frame(DATA$CS,DATA$ACP,DATA$DENS,DATA$DISP2,DATA$Q_VAR,DATA$EUCD,DATA$acc,DATA$error_disp,DATA$UC_share,DATA$MXQ,DATA$intra_rank,DATA$inter_rank,DATA$sd_cons,DATA$nonzero_cons,DATA$cons_bigDriver,DATA$pcb,DATA$pch,DATA$pe,DATA$ape,DATA$PERROR)
-colnames(cor_data) = c("ENV","ACP","DENS","DISP2","Q_VAR","EUCD","%ACC","error_disp","UC_share","MXQ","Heterogeneity","Dissimilarity","DriverVar","#Driver","BigDriver","pcb","pch","pe","ape","PERROR")
+cor_data= data.frame(DATA$DENS,DATA$ACP,DATA$ape,DATA$UC_share,DATA$EUCD)
+colnames(cor_data) = c("DENS","ACP","ape","UC_share","EUCD")
 apa.cor.table(cor_data,filename = paste0("cor",".doc"), table.number = 1)
 
 
