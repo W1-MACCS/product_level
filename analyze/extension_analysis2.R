@@ -30,7 +30,7 @@ data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 #data_pch_rank$Q_VAR = factor(data_pch_rank$Q_VAR, levels = c("Low","Medium","High"))
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
 #data_pch_rank$VarSize_class = as.factor(data_pch_rank$VarSize_class)
-ggplot(data_pch_rank, aes(x = ACP, y= cost_share_standard_res))+geom_line(aes(y = cost_share_standard_res, linetype = DENS))+geom_point(aes(shape = DENS))+
+ggplot(data_pch_rank, aes(x = ACP, y= UC_share))+geom_line(aes(y = UC_share, linetype = DENS))+geom_point(aes(shape = DENS))+
   theme_classic()+theme(text = element_text(size=16))+guides(linetype=guide_legend(title="Degree of Resource Sharing"))+guides(shape=guide_legend(title="Degree of Resource Sharing"))+
   facet_grid()+scale_y_continuous(labels = scales::comma)#+geom_hline(yintercept = 25)#+geom_vline(xintercept = 25)ylim(-1,1)
 

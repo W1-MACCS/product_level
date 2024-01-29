@@ -11,7 +11,7 @@ NUMB_RES = c(50)
 DISP1 = c(10)
 Q_VAR = c(-1)
 DENS = c(0.25, 0.5, 0.75)
-DISP2 = c(0.25)
+DISP2 = c(-1)
 COR1 = c(-1)
 COR2 = c(-1)
 
@@ -121,6 +121,7 @@ if(CaseStudy==0){
 
   RCC_list = .gen_RCC_Anand(FIRM$DISP1[i], FIRM$DISP2[i],FIRM$NUMB_RES[i])
   
+  #RCC_list = .gen_RCC(FIRM$DISP2[i],FIRM$NUMB_RES[i])
  
   
   PCB = RES_CONS_PAT_list$RES_CONS_PATp %*% RCC_list$RCC
@@ -255,7 +256,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       #entropy = calc_entropy(ACT_CONS_PAT) #entropy complexity (ElMaraghy et al., 2013)
       intra = calc_intra(RES_CONS_PATp) #intra-product heterogeneity (Gupta, 1993; Mertens, 2020)
       directed_inter = calc_directed_inter(RES_CONS_PATp) ##inter-product heterogeneity (Gupta, 1993; Mertens, 2020)
-      individuality = calc_individuality(RES_CONS_PAT,standard_res_size)*rowSums(RES_CONS_PAT)
+      individuality = calc_individuality(RES_CONS_PAT,standard_res_size)#*rowSums(RES_CONS_PAT)
       cost_core_list = calc_cost_ratio_std_res(RES_CONS_PATp,RCC,standard_res_size) #Relative Costs of Core Resources
       cost_ratio_std_res = cost_core_list$cost_ratio_std_res
       numb_std_res = cost_core_list$numb_std_res
@@ -269,7 +270,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       cons_bigDriver = calc_cons_bigDriver(ACT_CONS_PAT)
       cons_smallDriver = calc_cons_smallDriver(ACT_CONS_PAT)
       
-      PCB_rank = rank(PCB,ties.method = "random")
+      PCB_rank = rank(PCB,ties.method = "min")
       pcb_rank = rank(pcb,ties.method = "random")
       PCH_rank = rank(PCH,ties.method = "random")
       pch_rank = rank(pch,ties.method = "random")

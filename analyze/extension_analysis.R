@@ -63,7 +63,7 @@ data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
-ggplot(data_pch_rank, aes(x = MXQ_rank, y= pcb, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pch, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
 
 
 ###Cost Share Standard Ressources RANKED PERCENTAGE ERROR###
@@ -90,10 +90,9 @@ ggplot(data_pch_rank, aes(x = cost_ratio_std_res_rank, y= pe, linetype = ACP))+g
 
 ###INTER RANKED PERCENTAGE ERROR###
 DATA = output
-DATA$CS[DATA$CS == 0] <- "LowVar"
-DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 
-data_pch_rank = aggregate(.~ CS+directed_inter, data = DATA, mean)
+
+data_pch_rank = aggregate(.~ DENS+individuality_rank, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
@@ -101,7 +100,7 @@ data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = directed_inter, y= pe))+geom_line()+theme_classic()+facet_grid(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 0)+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = individuality_rank, y= pe))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 

@@ -293,7 +293,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
   
   repeat    {
     
-    BASE = rnorm(NUMB_PRO) #creates for every CO (product) a random number
+    BASE = rnorm(NUMB_PRO, mean = 0, sd =0.1) #creates for every CO (product) a random number
     
     RES_CONS_PATpre = matrix(rnorm(NUMB_PRO*NUMB_RES,mean=0,sd=1), 
                              NUMB_PRO, NUMB_RES)                            #random pre matrix, as Baseline
@@ -354,7 +354,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     RES_CONS_PAT <- ceiling(abs(RES_CONS_PAT) * 10)
     
     #product portfolio --> matching demand with complexity 
-    individuality = rowSums(RES_CONS_PAT)*calc_individuality(RES_CONS_PAT,standard_res_size)
+    individuality = calc_individuality(RES_CONS_PAT,standard_res_size)
     #individuality = calc_individuality(RES_CONS_PAT,standard_res_size)
     individuality_sorted = sort(individuality,decreasing=FALSE,index.return=TRUE)
     mxq_sorted = sort(MXQ,decreasing=TRUE,index.return=TRUE)$ix
@@ -385,6 +385,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     PRO_ZEROS<-any(rowSums(RES_CONS_PAT[,])==0)   #every product need at least one resource (exclude column one??)
     RES_ZEROS<-any(colSums(RES_CONS_PAT[,])==0)   #every resource needs to be used at least once
     BASE_ZEROS <-any(RES_CONS_PAT[,1]==0)         #first resource needs to be in every product ->why?
+    #BASE_ZEROS<-FALSE
     
     if(PRO_ZEROS==FALSE & RES_ZEROS==FALSE & BASE_ZEROS==FALSE) #discard the matrix if one of these conditions is not met
     {
@@ -1909,6 +1910,24 @@ cost_hierarchy$ul_fl = ul_fl
   
   RCC_list$DISP2_draw = DISP2
 
+  
+  return(RCC_list)
+  
+}
+
+
+.gen_RCC <- function(RC_VAR,NUMB_RES){
+  
+  TC = 1000000
+  if(RC_VAR == "LOW"){sd = 0.5}else if(RC_VAR == "MID"){sd = 1}else if(RC_VAR=='HIGH'){sd = 1.5}else if(RC_VAR == -1){sd = runif(1,min = 0.5,max =1.5)}
+
+  preRCC = rlnorm(NUMB_RES, meanlog = 1, sdlog = sd) #preDemand is buildup as a -> LogNormal Distribution 
+  RCC = ceiling((preRCC/sum(preRCC))*TC)
+  
+  RCC_list$RCC = RCC
+  
+  RCC_list$DISP2_draw = sd
+  
   
   return(RCC_list)
   

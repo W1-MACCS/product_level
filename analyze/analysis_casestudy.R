@@ -388,11 +388,16 @@ apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.nu
 
 MATCH_DATA = subset(DATA, PDR ==0 & CS==1)
 
-reg = pe ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb+directed_inter
+reg = pe ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb+cost_ratio_std_res
 
-reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
+reg_data = data.frame(lapply(MATCH_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+
+
+
+
 
 scatter.smooth(DATA$pe,DATA$MXQ)
 
