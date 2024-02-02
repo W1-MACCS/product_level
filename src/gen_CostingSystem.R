@@ -68,7 +68,7 @@ MAP_RES_CP_SIZE_CORREL_MISC_ANAND<-function(CP,RCC,RES_CONS_PATp){
   NUMB_RES = length(RCC)
 
   MISCPOOLSIZE = 250000
-  CC = 0.4
+  CC = 0.25
   RCCn= length(RCC)
 
   ####SIZE RULE####
@@ -480,6 +480,52 @@ MAP_CP_P_VOLUME <-function(RC_to_ACP,MXQ, NUMB_PRO){
   return(ACT_CONS_PAT)
 }
 
+
+
+MAP_CP_P_STD <-function(RC_to_ACP,RES_CONS_PATp,RCC, NUMB_PROm,std_res){
+  
+  ACP_index_choosen<-vector(mode="numeric")
+  # normalize RES_CONS_PAT
+  
+  RC_ACP_index<-RC_to_ACP
+  
+  # preallocation
+  ACT_CONS_PAT<-matrix(0,nrow = NUMB_PRO,ncol = length(RC_ACP_index))
+  
+  
+  for (i in 1:length(RC_ACP_index)){
+    
+    
+    ## exception handler if there is only one resource in ACP[[i]] take this resource as the driver
+    # in original version not needed, this is due to basic implementation of Rs function rowSums
+    if(length(RC_ACP_index[[i]])==1){
+      ACT_CONS_PAT[,i]<-RES_CONS_PATp[,RC_ACP_index[[i]]]
+    }else{
+      if(length(intersect(RC_ACP_index[[i]],std_res))==1){
+        ACT_CONS_PAT[,i]<- RES_CONS_PATp[,intersect(RC_ACP_index[[i]],std_res)]
+      }else if(length(intersect(RC_ACP_index[[i]],std_res))>1){
+        
+        ACT_CONS_PAT[,i]<- RES_CONS_PATp[,std_res[which.max(RCC[intersect(RC_ACP_index[[i]],std_res)])]]
+        
+      }else{
+        # 1. Order ACP_index in decreasing order of resource size
+        RC_order<-sort(RCC, decreasing=TRUE)
+        
+        RC_ACP_index[[i]]<-RC_ACP_index[[i]][order(match(RC_ACP_index[[i]],RC_order))]
+        RES_CONS_PAT_temp<-RES_CONS_PATp[,RC_ACP_index[[i]]] # subsetting for resources used in this ACP and ordering
+        # ACs<-sort(colSums(RES_CONS_PAT_temp),decreasing = TRUE,index.return=TRUE)
+        ACT_CONS_PAT[,i]<-RES_CONS_PAT_temp[,1] #use the largest Rescource as a driver
+      }
+
+    }
+  }
+  
+  
+  ACT_CONS_PAT = as.matrix(ACT_CONS_PAT)    
+  
+  
+  return(ACT_CONS_PAT)
+}
 
 
 

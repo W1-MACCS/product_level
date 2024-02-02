@@ -9,16 +9,16 @@ DATA =output
 ###PCH RANKED PERCENTAGE ERROR###
 DATA = output
 #DATA$CS[DATA$CS == 0] <- "CaseStudy"
-DATA$CS[DATA$CS == 1] <- "CaseStudy+VolMatch"
+#DATA$CS[DATA$CS == 1] <- "CaseStudy+VolMatch"
 
-data_pch_rank = aggregate(.~ pch_rank+Q_VAR+CS, data = DATA, mean)
+data_pch_rank = aggregate(.~ pch_rank+CSD, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = Q_VAR))+geom_line(linewidth=1)+facet_wrap(~CS)+theme_classic()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = CSD))+geom_line(linewidth=1)+facet_wrap(~CS)+theme_classic()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
 
 
 
@@ -26,13 +26,13 @@ ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = Q_VAR))+geom_line(linew
 DATA = output
 #DATA$CS[DATA$CS == 0] <- "CaseStudy"
 DATA$CS[DATA$CS == 1] <- "CaseStudy+VolMatch"
-data_pch_rank = aggregate(.~ACP+MXQ_rank+CS, data = DATA, mean)
+data_pch_rank = aggregate(.~CSD+MXQ_rank+CS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
-ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_wrap(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = CSD))+geom_line()+theme_classic()+facet_wrap(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 
@@ -133,31 +133,31 @@ ggplot(data_pch_rank, aes(x = res_numb_rank, y= pe, linetype = Q_VAR))+geom_line
 
 
 ###cons BigDriver RANKED PERCENTAGE ERROR###
-DATA = subset(output, ACP>=3)
+DATA = output
 DATA$PERROR = abs(DATA$ERROR)/1000000
 
-data_pch_rank = aggregate(.~cons_bigDriver_rank+Q_VAR+ACP, data = DATA, mean)
+data_pch_rank = aggregate(.~cons_bigDriver_rank+CSD, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = cons_bigDriver_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+facet_grid(~ACP)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = cons_bigDriver_rank, y= pe, linetype = CSD))+geom_line()+theme_classic()+facet_grid()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
 
 
 ###numb DRIVER RANKED PERCENTAGE ERROR###
-DATA = subset(output, ACP>=3)
+DATA = output
 
 
-data_pch_rank = aggregate(.~driver_numb_rank+Q_VAR+ACP, data = DATA, mean)
+data_pch_rank = aggregate(.~driver_numb_rank+CSD, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = driver_numb_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+facet_grid(~ACP)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = driver_numb_rank, y= pe, linetype = CSD))+geom_line()+theme_classic()+facet_grid()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
 
 
 
@@ -371,29 +371,36 @@ apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.nu
 
 ##############################################################################################################################
 
-##Regression Analysis
+
+##Regression Analysis - Percentage Error
 DATA = output
 #DATA = subset(DATA, ACP>1)
 library(apaTables)
 
 
-ORIG_DATA = subset(DATA, PDR ==0 & CS==0)
+ORIG_DATA = subset(DATA, CSD =="SCD")
 
-reg = pe ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb
+reg = pe ~ pch+MXQ+res_numb+cost_ratio_std_res#+cons_bigDriver+driverVar+driver_numb
 
 reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 
-MATCH_DATA = subset(DATA, PDR ==0 & CS==1)
 
-reg = pe ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb+cost_ratio_std_res
+##Regression Analysis - Percentage Error
+DATA = output
+#DATA = subset(DATA, ACP>1)
+library(apaTables)
 
-reg_data = data.frame(lapply(MATCH_DATA[,all.vars(reg)], scale))
+
+ORIG_DATA = subset(DATA, CSD =="MCD")
+
+reg = pe ~ pch+MXQ+res_numb+cost_ratio_std_res+cons_bigDriver+driverVar+driver_numb
+
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
-
 
 
 

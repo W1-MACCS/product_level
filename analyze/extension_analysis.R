@@ -3,6 +3,7 @@ library(ggplot2)
 
 output$PERROR = abs(output$ERROR)/output$EUCD
 output$AERROR = abs(output$ERROR)
+
 DATA =output
 #DATA$PERROR = abs(DATA$ERROR)/1000000
 
@@ -12,24 +13,21 @@ DATA = output
 #DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 
 
-data_pch_rank = aggregate(.~ DENS+pch_rank+ACP, data = DATA, mean)
+data_pch_rank = aggregate(.~ DENS+pch_rank+CSD, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 #data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$ME = as.factor(data_pch_rank$Q_VAR)
-ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = ACP))+geom_line(linewidth=1)+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+#data_pch_rank$SCD = as.factor(data_pch_rank$SCD)
+ggplot(data_pch_rank, aes(x = pch_rank, y= ape,linetype = CSD))+geom_line(linewidth=1)+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
 
 
 # summary(subset(DATA, DENS == 0.25)$nonzero_cons)/50
 # summary(subset(DATA, DENS == 0.5)$nonzero_cons)/50
 # summary(subset(DATA, DENS == 0.75)$nonzero_cons)/50
 
-summary(subset(DATA, CS == 0&DENS== 0.75)$BE_AB)
-summary(subset(DATA, CS == 1&DENS== 0.75)$BE_AB)
-summary(subset(DATA, CS == 2&DENS== 0.75)$BE_AB)
-summary(subset(DATA, CS == 3&DENS== 0.75)$BE_AB)
 
 
 
@@ -40,14 +38,15 @@ DATA = output
 #DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 
 
-data_pch_rank = aggregate(.~ DENS+MXQ_rank+ACP, data = DATA, mean)
+data_pch_rank = aggregate(.~ DENS+MXQ_rank+CSD, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 #data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
-ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = CSD))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 ###MXQ RANKED pch###
@@ -56,14 +55,15 @@ DATA = output
 #DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 
 
-data_pch_rank = aggregate(.~ DENS+MXQ_rank+ACP, data = DATA, mean)
+data_pch_rank = aggregate(.~ DENS+MXQ_rank+SCD, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 #data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
-ggplot(data_pch_rank, aes(x = MXQ_rank, y= pch, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+data_pch_rank$SCD = as.factor(data_pch_rank$SCD)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pch, linetype = SCD))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
 
 
 ###Cost Share Standard Ressources RANKED PERCENTAGE ERROR###
@@ -284,14 +284,15 @@ ggplot(data_pch_rank, aes(x = ACP, y= acc,col = CS))+geom_line()+theme_classic()
 
 ############################################BE_AB#######################################################################
 DATA = subset(output)
-DATA$CS[DATA$CS == 0] <- "LowVar"
-DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
-DATA$CS[DATA$CS == 2] <- "HighVar"
-DATA$CS[DATA$CS == 3] <- "HighVar+VolMatch"
-DATA$CS = factor(DATA$CS, levels = c("LowVar","LowVar+VolMatch"))
-DATA$ACP = as.factor(DATA$ACP)
-DATA$ME = as.factor(DATA$ME)
-ggplot(DATA,aes(x= OC, color= ME))+geom_histogram(fill= "white", alpha=0.2, position="identity")+geom_vline(xintercept = 25)+facet_grid(~DENS)+theme_classic()
+data_pch_rank = aggregate(.~driver_share+CSD+DENS, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+DATA$driver_share = as.factor(DATA$driver_share)
+DATA$numb_std_res = as.factor(DATA$numb_std_res)
+
+#data_pch_rank$numb_std_res = as.factor(data_pch_rank$numb_std_res)
+
+ggplot(DATA,aes(y = EUCD, x= numb_std_res, col =DENS))+geom_boxplot()+theme_classic()
 
 
 
@@ -399,221 +400,132 @@ apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.nu
 
 ##############################################################################################################################
 
-##Regression Analysis
+##Regression Analysis - Percentage Error
+
+
+
+##Regression Analysis - Percentage Error - Single Driver Costing System 
 DATA = output
 #DATA = subset(DATA, ACP>1)
 library(apaTables)
 
 
-ORIG_DATA = subset(DATA, PDR ==0 & CS==1)
+ORIG_DATA = subset(DATA, CSD == "SCD" & DENS ==0.25) 
 
-reg = pe ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb+cost_ratio_std_res+individuality
+reg = pe ~ pch+MXQ+res_numb+cost_ratio_std_res
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
+ORIG_DATA = subset(DATA, CSD == "SCD" & DENS ==0.5) 
+
+reg = pe ~ pch+MXQ+res_numb+cost_ratio_std_res
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+ORIG_DATA = subset(DATA, CSD == "SCD" & DENS ==0.75) 
+
+reg = pe ~ pch+MXQ+res_numb+cost_ratio_std_res
 reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 
 
-
-MATCH_DATA = subset(DATA, PDR ==0 & CS==1)
-
-reg = pe ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb+cost_core_rel
-
-reg_data = data.frame(lapply(MATCH_DATA[,all.vars(reg)], scale))
-linear_reg_std = lm(reg, data = reg_data)
-apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
-
-
-
-
-MATCH_DATA = subset(DATA, PDR ==0 & CS==1)
-
-reg = ape ~ pch+MXQ+resVar+mean_cons+res_numb+cons_bigDriver+driverVar+driver_numb+cost_core_rel
-
-reg_data = data.frame(lapply(MATCH_DATA[,all.vars(reg)], scale))
-linear_reg_std = lm(reg, data = reg_data)
-apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
-
-
-
-
-
-DIAG_DATA = subset(DATA, PDR ==0 &CS==2)
-
-reg = pe ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
-
-reg_data = data.frame(lapply(DIAG_DATA[,all.vars(reg)], scale))
-linear_reg_std = lm(reg, data = reg_data)
-apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
-
-
-
-DIAG_MATCH_DATA = subset(DATA, PDR ==0 &CS==3)
-
-reg = pe ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
-
-reg_data = data.frame(lapply(DIAG_MATCH_DATA[,all.vars(reg)], scale))
-linear_reg_std = lm(reg, data = reg_data)
-apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
-
-
-
-
-
-
-
-##########################################################################################################################################################
-
-
-#APE
-
-##Regression Analysis
+##Regression Analysis - Percentage Error - Multiple  Driver Costing System 
 DATA = output
-#DATA = subset(DATA, ME==0)
-
-
-
-ORIG_DATA = subset(DATA, PDR ==0 & CS==0)
-
-reg = ape ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
-
-reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
-linear_reg_std = lm(reg, data = reg_data)
-apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
-
-
-MATCH_DATA = subset(DATA, PDR ==0 & CS==1)
-
-reg = ape ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
-
-reg_data = data.frame(lapply(MATCH_DATA[,all.vars(reg)], scale))
-linear_reg_std = lm(reg, data = reg_data)
-apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
-
-
-DIAG_DATA = subset(DATA, PDR ==0 &CS==2)
-
-reg = ape ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
-
-reg_data = data.frame(lapply(DIAG_DATA[,all.vars(reg)], scale))
-linear_reg_std = lm(reg, data = reg_data)
-apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
-
-
-
-DIAG_MATCH_DATA = subset(DATA, PDR ==0 &CS==3)
-
-reg = ape ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
-
-reg_data = data.frame(lapply(DIAG_MATCH_DATA[,all.vars(reg)], scale))
-linear_reg_std = lm(reg, data = reg_data)
-apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
-
-
-
-
-
-
-
-##########################################################################################################################################################
-
-
-#PERROR
-
-##Regression Analysis
-DATA = output
-DATA$PERROR = abs(DATA$ERROR)/1000000
 #DATA = subset(DATA, ACP>1)
+library(apaTables)
 
 
+ORIG_DATA = subset(DATA, CSD == "MCD" & DENS==0.25)
 
-ORIG_DATA = subset(DATA, PDR ==0 & CS==0)
+reg = pe ~ pch+MXQ+res_numb+cost_ratio_std_res+cons_bigDriver+driverVar+driver_numb
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
-reg = PERROR ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
+ORIG_DATA = subset(DATA, CSD == "MCD" & DENS==0.5)
 
+reg = pe ~ pch+MXQ+res_numb+cost_ratio_std_res+cons_bigDriver+driverVar+driver_numb
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+ORIG_DATA = subset(DATA, CSD == "MCD" & DENS==0.75)
+
+reg = pe ~ pch+MXQ+res_numb+cost_ratio_std_res+cons_bigDriver+driverVar+driver_numb
 reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 
-MATCH_DATA = subset(DATA, PDR ==0 & CS==1)
 
-reg = PERROR ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
+################################################################################################################################
 
-reg_data = data.frame(lapply(MATCH_DATA[,all.vars(reg)], scale))
+##Regression Analysis - Absolute Percentage Error
+
+
+
+##Regression Analysis - Percentage Error - Single Driver Costing System 
+DATA = output
+#DATA = subset(DATA, ACP>1)
+library(apaTables)
+
+
+ORIG_DATA = subset(DATA, CSD == "SCD" & DENS ==0.25) 
+
+reg = ape ~ pch+MXQ+res_numb+cost_ratio_std_res
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+ORIG_DATA = subset(DATA, CSD == "SCD" & DENS ==0.5) 
+
+reg = ape ~ pch+MXQ+res_numb+cost_ratio_std_res
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+ORIG_DATA = subset(DATA, CSD == "SCD" & DENS ==0.75) 
+
+reg = ape ~ pch+MXQ+res_numb+cost_ratio_std_res
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 
-DIAG_DATA = subset(DATA, PDR ==0 &CS==2)
 
-reg = PERROR ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
+##Regression Analysis - Percentage Error - Multiple  Driver Costing System 
+DATA = output
+#DATA = subset(DATA, ACP>1)
+library(apaTables)
 
-reg_data = data.frame(lapply(DIAG_DATA[,all.vars(reg)], scale))
+
+ORIG_DATA = subset(DATA, CSD == "MCD" & DENS==0.25)
+
+reg = ape ~ pch+MXQ+res_numb+cost_ratio_std_res+cons_bigDriver+driverVar+driver_numb
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+ORIG_DATA = subset(DATA, CSD == "MCD" & DENS==0.5)
+
+reg = ape ~ pch+MXQ+res_numb+cost_ratio_std_res+cons_bigDriver+driverVar+driver_numb
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
+linear_reg_std = lm(reg, data = reg_data)
+apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+ORIG_DATA = subset(DATA, CSD == "MCD" & DENS==0.75)
+
+reg = ape ~ pch+MXQ+res_numb+cost_ratio_std_res+cons_bigDriver+driverVar+driver_numb
+reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
 
 
 
-DIAG_MATCH_DATA = subset(DATA, PDR ==0 &CS==3)
-
-reg = PERROR ~ pch+MXQ+sd_cons+nonzero_cons+cons_bigDriver+cons_smallDriver+inter_rank+intra_rank
-
-reg_data = data.frame(lapply(DIAG_MATCH_DATA[,all.vars(reg)], scale))
-linear_reg_std = lm(reg, data = reg_data)
-apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
-
-
-
-###############################################################################################################################################################
-firm_envs = unique(output$FIRM_ENV)
-j=1
-for(j in firm_envs){
-  
-  sub_data = subset(output, FIRM_ENV == j)
-  
-  sub_data$pch
-  
-  
-  
-  
-  
-  
-  
-}
-
-output$cons_predict = 0
-output$err_predict =0
-
-for(t in 1:nrow(output)){
-  
-  if(output$cons_bigDriver[t]>output$mean_cons_bigDriver[t]){output$cons_predict[t] = 1 }else{output$cons_predict[t] = -1 }
-  if(output$pe[t]>0){output$err_predict[t] = 1}else{output$err_predict[t] = -1}
-  print(t)
-}
-
-
-apply(output, MARGIN =1, FUN = function(x){})
-
-sum(output$err_predict == output$cons_predict)
-
-
-i=1
-output$cons_bigDriver[which(is.na(output$cons_bigDriver))]<-0
-for(i in 1:nrow(output)){
-  output$error_direction=0
-  output$pch_predict = 0
-  output$driver_predict =0
-  if(output$pe[i]>0){output$error_direction[i] = 1}else{output$error_direction[i] = -1}
-  
-  if(output$pch[i]>median(output$pch)){output$pch_predict[i] = 1}else{output$pch_predict[i] = -1}
-  
-  if(output$cons_bigDriver[i]>median(output$cons_bigDriver)){output$driver_predict[i] = 1}else{output$driver_predict[i] = -1}
-  
-  print(i)
-  
-}
 
 
 

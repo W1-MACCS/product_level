@@ -5,7 +5,7 @@ CaseStudy = 0
 
 ## ====================================== INPUT FOR FIRM GENERATION ==================================================
 
-NUMB_FIRMS = 50
+NUMB_FIRMS = 100
 NUMB_PRO = c(50)
 NUMB_RES = c(50)
 DISP1 = c(10)
@@ -47,7 +47,7 @@ colnames(FIRM) = c('randID',"FirmID",'NUMB_PRO','NUMB_RES',"DISP1", "DISP2", "DE
 ## ====================================== INPUT FOR COSTING SYSTEM GENERATION ==================================================
 COSTING_SYSTEM = list()
 
-CP = c(1,3,6,10,15,20)#1,3,6,10,15,20#as in Anand et al. (2017)
+CP = c(1,5,10,15,20)#1,3,6,10,15,20#as in Anand et al. (2017)
 CP_HEURISTIC = c(1)#2 -size-random-misc #as in Anand et al. (2017)
 CD_HEURISTIC = c(0)#0 - Big Pool #as in Anand et al. (2017)
 ME = c(0.3)
@@ -179,6 +179,8 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       #cost_hierarchy = DATA_list$cost_hierarchy[[DATA$randID[i]]]
       RCC = DATA_list$RCC[[DATA$randID[DATA$randID[i]]]]
       MXQ = t(FIRM[which(DATA$randID[i] == FIRM$randID),(13+NUMB_PRO):(13+NUMB_PRO+NUMB_PRO-1)])
+      standard_res_size = FIRM[which(FIRM$randID == DATA$randID[i]),]$standard_res_size
+      
       
 
       if(DATA$PACP[i] == 0){
@@ -195,6 +197,10 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
         ACT_CONS_PAT = MAP_CP_P_BIGPOOL(CostingSystem_list$RC_to_ACP,RES_CONS_PATp,RCC, NUMB_PRO)
       }else if(DATA$PDR[i] == 1){
         ACT_CONS_PAT = MAP_CP_P_VOLUME(CostingSystem_list$RC_to_ACP,MXQ,NUMB_PRO)
+      }else if(DATA$PDR[i] == 2){
+        cost_core_list = calc_cost_ratio_std_res(RES_CONS_PATp,RCC,standard_res_size) #Relative Costs of Core Resources
+        std_res = unlist(cost_core_list$std_res)
+        ACT_CONS_PAT = MAP_CP_P_STD(CostingSystem_list$RC_to_ACP,RES_CONS_PATp,RCC, NUMB_PRO,std_res)
       }
       
       
@@ -202,8 +208,8 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
         ACT_CONS_PAT = apply_ME(ACT_CONS_PAT,me,acp,NUMB_PRO)
       }
       
+      cost_drivers = unlist(lapply(CostingSystem_list$RC_to_ACP,function(x){x[which.max(RCC[x])]}))
       
-
       PCH =  ACT_CONS_PAT %*% CostingSystem_list$ACP
       #PCB = RES_CONS_PATp %*% RCC
       PCB = t(FIRM[which(FIRM$randID==DATA$randID[i]),(14:(14+NUMB_PRO-1))])
@@ -215,7 +221,6 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       DISP2 = FIRM[which(FIRM$randID == DATA$randID[i]),]$DISP2
       Q_VAR = FIRM[which(FIRM$randID == DATA$randID[i]),]$Q_VAR
       CS = FIRM[which(FIRM$randID == DATA$randID[i]),]$CS
-      standard_res_size = FIRM[which(FIRM$randID == DATA$randID[i]),]$standard_res_size
       non_unit_size = FIRM[which(FIRM$randID == DATA$randID[i]),]$non_unit_size
       #if(CS ==0){CS_levels = 0}else{CS_levels=1}
       #else if(non_unit_size<0.33){CS_levels = "LOW"}else if(non_unit_size>0.46){CS_levels = "HIGH"}else{CS_levels = "MID"}
@@ -259,6 +264,8 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       individuality = calc_individuality(RES_CONS_PAT,standard_res_size)#*rowSums(RES_CONS_PAT)
       cost_core_list = calc_cost_ratio_std_res(RES_CONS_PATp,RCC,standard_res_size) #Relative Costs of Core Resources
       cost_ratio_std_res = cost_core_list$cost_ratio_std_res
+      std_res = unlist(cost_core_list$std_res)
+      driver_share = (acp - length(setdiff(cost_drivers,std_res)))/acp
       numb_std_res = cost_core_list$numb_std_res
       #complexity = calc_complexity(ACT_CONS_PAT)
       driverVar = calc_cons_var(ACT_CONS_PAT)
@@ -302,6 +309,7 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       EUCD = sum(abs(ERROR))
       No_bigDriver = sum(CostingSystem_list$ACP>200000)
       mean_cons_bigDriver = mean(cons_bigDriver)
+      if(acp ==1){CSD = "SCD"}else{CSD = "MCD"}
       
       #data_logging
       PRODUCT = c(1:NUMB_PRO)
@@ -334,6 +342,8 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       error_disp_out = c()
       numb_std_res_out = c()
       standard_res_size_out = c()
+      CSD_out = c()
+      driver_share_out = c()
       
       UNIQUE_ID[PRODUCT] = i
       FIRM_ENV[PRODUCT] = rand_id
@@ -364,13 +374,16 @@ output <- foreach(i = 1:nrow(DATA), .combine = rbind, .options.snow = opts, .pac
       error_disp_out[PRODUCT] = error_disp
       numb_std_res_out[PRODUCT] = numb_std_res
       standard_res_size_out[PRODUCT] = standard_res_size
+      CSD_out[PRODUCT] = CSD
+      driver_share_out[PRODUCT] = driver_share
       
-      preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,CS,NUMB_RES_out,PACP_out,ACP_out,PDR_out,ME_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,PMH_out,No_bigDriver_out,acc_out,MAPE_out,
+      preDATA = data.frame(FIRM_ENV,PRODUCT,COST_SYS,CS,NUMB_RES_out,PACP_out,ACP_out,CSD_out,PDR_out,ME_out,DISP1_out,DISP2_out,DENS_out,COR1_out,COR2_out,Q_VAR_out,PMH_out,No_bigDriver_out,acc_out,MAPE_out,driver_share_out,
                            MXQ,MXQ_rank,PCB,PCB_rank,PCH,PCH_rank,PE,ERROR,PERROR_rank,pcb,pcb_rank,pch,pch_rank,pe,pe_rank,error,resVar,resVar_rank,directed_inter,directed_inter_rank,
                            driverVar,driverVar_rank,mean_cons,mean_cons_rank,res_numb, res_numb_rank, driver_numb,driver_numb_rank,act_cons,act_cons_rank,
-                           cons_bigDriver,cons_bigDriver_rank,cons_smallDriver,cons_smallDriver_rank,BE_AB_out,ape,UC_out,OC_out,EUCD_out,mean_cons_bigDriver_out,error_disp_out,UC_share_out,cost_ratio_std_res,cost_ratio_std_res_rank,numb_std_res_out,standard_res_size_out,individuality,individuality_rank) 
+                           cons_bigDriver,cons_bigDriver_rank,cons_smallDriver,cons_smallDriver_rank,BE_AB_out,ape,UC_out,OC_out,EUCD_out,mean_cons_bigDriver_out,error_disp_out,UC_share_out,cost_ratio_std_res,cost_ratio_std_res_rank,
+                           numb_std_res_out,standard_res_size_out,individuality,individuality_rank) 
       
-      colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','CS','NUMB_RES','PACP','ACP','PDR',"ME",'DISP1','DISP2','DENS','COR1','COR2','Q_VAR','VarSize',"NoBigDriver","acc","mape",
+      colnames(preDATA) = c('FIRM_ENV','PRODUCT','COST_SYS','CS','NUMB_RES','PACP','ACP',"CSD",'PDR',"ME",'DISP1','DISP2','DENS','COR1','COR2','Q_VAR','VarSize',"NoBigDriver","acc","mape","driver_share",
                             'MXQ','MXQ_rank','PCB','PCB_rank','PCH','PCH_rank','PE','ERROR','PERROR_rank','pcb','pcb_rank','pch','pch_rank','pe','pe_rank','error','resVar','resVar_rank','directed_inter','intdirected_inter_rank',
                             'driverVar','driverVar_rank','mean_cons', 'mean_cons_rank','res_numb','res_numb_rank','driver_numb','driver_numb_rank','act_cons','act_cons_rank',
                             'cons_bigDriver','cons_bigDriver_rank','cons_smallDriver','cons_smallDriver_rank',"BE_AB",'ape','UC','OC','EUCD','mean_cons_bigDriver','error_disp','UC_share','cost_ratio_std_res','cost_ratio_std_res_rank','numb_std_res','standard_res_size','individuality','individuality_rank')

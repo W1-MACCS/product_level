@@ -21,7 +21,7 @@ DATA = output
 #DATA$Q_VAR[DATA$Q_VAR == 2] <- "Medium"
 #DATA$Q_VAR[DATA$Q_VAR == 3] <- "High"
 
-data_pch_rank = aggregate(.~ ACP+DENS, data = DATA, mean)
+data_pch_rank = aggregate(.~ ACP+PDR+CSD+DENS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 #data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch","HighVar","HighVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
@@ -30,9 +30,9 @@ data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 #data_pch_rank$Q_VAR = factor(data_pch_rank$Q_VAR, levels = c("Low","Medium","High"))
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
 #data_pch_rank$VarSize_class = as.factor(data_pch_rank$VarSize_class)
-ggplot(data_pch_rank, aes(x = ACP, y= UC_share))+geom_line(aes(y = UC_share, linetype = DENS))+geom_point(aes(shape = DENS))+
-  theme_classic()+theme(text = element_text(size=16))+guides(linetype=guide_legend(title="Degree of Resource Sharing"))+guides(shape=guide_legend(title="Degree of Resource Sharing"))+
-  facet_grid()+scale_y_continuous(labels = scales::comma)#+geom_hline(yintercept = 25)#+geom_vline(xintercept = 25)ylim(-1,1)
+ggplot(data_pch_rank, aes(x = ACP, y= EUCD))+geom_line(aes(y = EUCD, linetype = DENS))+geom_point(aes(shape = DENS))+
+  theme_classic()+theme(text = element_text(size=16),legend.position = "bottom")+guides(linetype=guide_legend(title="Degree of Resource Sharing"))+guides(shape=guide_legend(title="Degree of Resource Sharing"))+
+  facet_grid()+scale_y_continuous(labels = scales::comma)#+ylim(0.5,1)#+geom_hline(yintercept = 25)#+geom_vline(xintercept = 25)
 
 
 #kp was ich hier mache

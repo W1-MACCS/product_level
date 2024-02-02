@@ -2042,9 +2042,12 @@ calc_individuality <- function(matrix,standard_res_size){
  
    if(is.null(ncol(matrix_core))){
      individuality=matrix_core
-  }else{individuality <- rowSums(matrix_core)}
+   }else{individuality <- rowSums(matrix_core)}
+  
+  individuality = 1-individuality 
+
  
-  return(1-individuality)
+  return(individuality)
 }
 
 calc_cost_ratio_std_res <- function(matrix, RCC, standard_res_size){
@@ -2074,6 +2077,7 @@ calc_cost_ratio_std_res <- function(matrix, RCC, standard_res_size){
   ret = list()
   ret$cost_ratio_std_res = cost_core_res/cost_total
   ret$numb_std_res = sum(core_res)
+  ret$std_res = which(core_res==1)
 
   return(ret)
 }
