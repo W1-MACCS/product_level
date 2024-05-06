@@ -416,6 +416,116 @@ MAP_RES_CP_SIZE_CORREL_CUTOFF_MISC_ANAND<-function(CP, RCC, RES_CONS_PATp){
 }# ANAND P==3 like anands currel cutoff ( not one by one) w/ miscpool
 
 
+MAP_RES_CP_SIZE_CORREL<-function(CP,RCC,RES_CONS_PATp){
+  #### SIZE-BASED RANDOM ALLOCATION OF RESOURCES TO COST POOLS ####    
+  
+  MISCPOOL = 0
+  RCCn = length(RCC)
+  NUMB_RES = ncol(RES_CONS_PATp)
+  
+  ####---- pre allocation of largest resorces ----####
+  ACP_pre1<-vector(mode="numeric")
+  RC_to_ACP = list()
+  
+  #### Find the largest RCC (resource costs) for one cost pool each####
+  RCCs<-sort(RCC,decreasing = TRUE,index.return=TRUE)   # sort resource costs 
+  
+  for (i in 1:CP){               # assign the biggest RCC each to one cost pool
+    
+    ACP_pre1[i]<-RCCs$x[i]
+    RC_to_ACP[[i]]<-RCCs$ix[i]
+    
+  }
+  
+  already_assigned<-unlist(RC_to_ACP)          #transforms the list into a vector with all resources that are already assigned
+  not_assigned <- setdiff(c(1:RCCn),already_assigned)
+  
+  if(NUMB_RES> CP)                                         #if there are more resources than cost pools
+  {
+    
+    ####CORRELATION RULE####
+    #### BUILDIUNG OF CORRELATION MATRIX---------------
+    
+    ##Create empty matrix that shows correlation between assigned and unassigned resources
+    RC_Correl = matrix(nrow = length(already_assigned), ncol = NUMB_RES)#empty matrix for correlations between assigned and not assigned resources
+    
+    ##fill empty matrix with correlations
+    for (i in 1:length(already_assigned)){
+      for (j in 1:ncol(RES_CONS_PATp)){
+        
+        RC_Correl[i,j] = cor(RES_CONS_PATp[,already_assigned[i]],RES_CONS_PATp[,j])
+        
+      }
+    }
+    
+    
+    colnames(RC_Correl) = paste(c(1:ncol(RES_CONS_PATp)))#changing the column names to the resource number
+    RC_Correl = matrix(RC_Correl[,-already_assigned], ncol = length(not_assigned)) #delete resources that are already assigned from Correlation Matrix, so they dont get assigned twice
+    colnames(RC_Correl) = paste(not_assigned)
+    
+    #### CREATING A LIST THAT SHOWS THE ALLOCATION OF RESOURCES TO COST POOLS---------------------
+    
+    #Assign resources to ACPs based on the correlation as long as there are more resources unassigned than the Miscpoolsize
+    #Sorting the RC_Correl Matrix by high correlations
+    
+    
+    RC_to_ACP_cor <- which(RC_Correl>=sort(RC_Correl, decreasing = T)[ncol(RC_Correl)*nrow(RC_Correl)], arr.ind = T)#list of length of size of RC_Correl
+    RC_to_ACP_cor = data.frame(RC_to_ACP_cor) #transform it into a dataframe
+    
+    RC_Correl_V = as.vector(RC_Correl)  #transform correlations into vector
+    
+    RC_to_ACP_cor$cor = RC_Correl_V     #append vector to correl dataframe, so each correlation for every CP/Res combination gets a row
+    
+    RC_to_ACP_cor = RC_to_ACP_cor[order(RC_to_ACP_cor$cor, decreasing = TRUE),]   #sort the df by dreasing correlations
+    
+    RC_to_ACP_cor = RC_to_ACP_cor[!duplicated(RC_to_ACP_cor$col, fromLast = FALSE),] #drop all duplicate resources, so you have the highest correlations left
+    
+    RC_to_ACP_cor = RC_to_ACP_cor[order(RC_to_ACP_cor$col, decreasing = FALSE),]     # sort it by decreasing resource so resource numbers can get changed into the not assigned ones
+    
+    
+    for (i in RC_to_ACP_cor$col){
+      
+      RC_to_ACP_cor$col[i] =  colnames(RC_Correl)[i]           #change the resource names, according to the ones that are not yet assigned
+    }
+    
+    RC_to_ACP_cor = RC_to_ACP_cor[order(RC_to_ACP_cor$cor, decreasing = TRUE),] #sort it again by decreasing correlation so the biggest correlations are assigned first
+    
+    
+    
+    #### ALLOCATING RESOURCES TO COST POOLS ------------------
+    ##It is possible and allowed that more than one resource is assigned to one cost pool
+    ACP_pre2<-vector(mode='numeric', length = CP)
+    
+    for (i in 1:length(not_assigned)) {
+      
+      RC_to_ACP[[RC_to_ACP_cor$row[i]]] = c(RC_to_ACP[[RC_to_ACP_cor$row[i]]],as.integer(RC_to_ACP_cor$col[i]))
+      ACP_pre2[[RC_to_ACP_cor$row[i]]] = sum(ACP_pre2[[RC_to_ACP_cor$row[i]]],RCC[as.integer(RC_to_ACP_cor$col[i])])
+      not_assigned = as.integer(RC_to_ACP_cor$col[i+1:(length(RC_to_ACP_cor$col)-i)])
+    }
+    
+    
+    
+    ACP<-ACP_pre1+ACP_pre2                                         #The total volume of each ACP is the sum of all resources together in one ACP
+    
+    
+    
+  } else{
+    
+    ACP <- ACP_pre1                                             #if there was no second assignment of remaining resources (No. of RC = No. of ACP) all RC are in ACP_pre1
+  }
+  
+  
+  browser()
+  
+  CostingSystem_list = list()
+  
+  CostingSystem_list$ACP = ACP
+  CostingSystem_list$RC_to_ACP = RC_to_ACP
+  
+  return(FIRM)
+}#
+
+
 ## ====================================== COST DRIVER SELECTION ==================================================
 
 MAP_CP_P_BIGPOOL <-function(RC_to_ACP,RES_CONS_PATp,RCC, NUMB_PRO){

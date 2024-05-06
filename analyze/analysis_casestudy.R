@@ -6,6 +6,34 @@ output$AERROR = abs(output$ERROR)
 DATA =output
 #DATA$PERROR = abs(DATA$ERROR)/1000000
 
+
+DATA = output
+DATA$CSD = 1
+#DATA$CS[DATA$CS == 0] <- "LowVar"
+#DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
+#DATA$CS[DATA$CS == 2] <- "HighVar"
+#DATA$CS[DATA$CS == 3] <- "HighVar+VolMatch"
+#DATA$Q_VAR[DATA$Q_VAR == 1] <- "Low"
+#DATA$Q_VAR[DATA$Q_VAR == 2] <- "Medium"
+#DATA$Q_VAR[DATA$Q_VAR == 3] <- "High"
+
+data_pch_rank = aggregate(.~ ACP, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+#data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch","HighVar","HighVar+VolMatch"))
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+#data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+#data_pch_rank$Q_VAR = factor(data_pch_rank$Q_VAR, levels = c("Low","Medium","High"))
+data_pch_rank$ME = as.factor(data_pch_rank$ME)
+#data_pch_rank$VarSize_class = as.factor(data_pch_rank$VarSize_class)
+ggplot(data_pch_rank, aes(x = ACP, y= UC_share))+geom_line(aes(y = UC_share))+geom_point()+
+  theme_classic()+theme(text = element_text(size=16),legend.position = "bottom")+guides(linetype=guide_legend(title="Degree of Resource Sharing"))+guides(shape=guide_legend(title="Degree of Resource Sharing"))+
+  facet_grid()+scale_y_continuous(labels = scales::comma)#+ylim(0.5,1)#+geom_hline(yintercept = 25)#+geom_vline(xintercept = 25)
+
+
+
+
+
 ###PCH RANKED PERCENTAGE ERROR###
 DATA = output
 #DATA$CS[DATA$CS == 0] <- "CaseStudy"
@@ -25,14 +53,14 @@ ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = CSD))+geom_line(linewid
 ###MXQ RANKED PERCENTAGE ERROR###
 DATA = output
 #DATA$CS[DATA$CS == 0] <- "CaseStudy"
-DATA$CS[DATA$CS == 1] <- "CaseStudy+VolMatch"
+DATA$CS[DATA$CS == 1] <- "Case Study"
 data_pch_rank = aggregate(.~CSD+MXQ_rank+CS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
-ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = CSD))+geom_line()+theme_classic()+facet_wrap(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = CSD))+geom_line()+theme_classic()+facet_wrap(~CS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 75)+ylim(-1,1)
 
 
 
@@ -120,14 +148,14 @@ ggplot(data_pch_rank, aes(x = mean_cons_rank, y= pe, linetype = Q_VAR))+geom_lin
 ###numb_res RANKED PERCENTAGE ERROR###
 DATA = output
 
-data_pch_rank = aggregate(.~ res_numb_rank+Q_VAR, data = DATA, mean)
+data_pch_rank = aggregate(.~ res_numb_rank+CSD, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = res_numb_rank, y= pe, linetype = Q_VAR))+geom_line()+theme_classic()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = res_numb_rank, y= pe, linetype = CSD))+geom_line()+theme_classic()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 
@@ -143,7 +171,7 @@ data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = cons_bigDriver_rank, y= pe, linetype = CSD))+geom_line()+theme_classic()+facet_grid()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = cons_bigDriver_rank, y= pe, linetype = CSD))+geom_line()+theme_classic()+facet_grid()+geom_hline(yintercept = 0)+geom_vline(xintercept = 75)#+ylim(-1,1)
 
 
 ###numb DRIVER RANKED PERCENTAGE ERROR###

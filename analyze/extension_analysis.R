@@ -9,11 +9,13 @@ DATA =output
 
 ###PCH RANKED PERCENTAGE ERROR###
 DATA = output
-#DATA$CS[DATA$CS == 0] <- "LowVar"
-#DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
+DATA$CSD <-1
+DATA$class <-0
+DATA$class[which(DATA$uldriver_share>=0.5)]<-"UL"
+DATA$class[which(DATA$uldriver_share<0.5)]<-"NUL"
 
 
-data_pch_rank = aggregate(.~ DENS+pch_rank+CSD, data = DATA, mean)
+data_pch_rank = aggregate(.~ pch_rank+class, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 #data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
@@ -21,7 +23,7 @@ data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$ME = as.factor(data_pch_rank$Q_VAR)
 #data_pch_rank$SCD = as.factor(data_pch_rank$SCD)
-ggplot(data_pch_rank, aes(x = pch_rank, y= ape,linetype = CSD))+geom_line(linewidth=1)+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+ggplot(data_pch_rank, aes(x = pch_rank, y= pe,linetype = class))+geom_line(linewidth=1)+theme_classic()+facet_grid()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
 
 
 # summary(subset(DATA, DENS == 0.25)$nonzero_cons)/50
@@ -34,11 +36,12 @@ ggplot(data_pch_rank, aes(x = pch_rank, y= ape,linetype = CSD))+geom_line(linewi
 
 ###MXQ RANKED PERCENTAGE ERROR###
 DATA = output
+DATA$CSD =1
 #DATA$CS[DATA$CS == 0] <- "LowVar"
 #DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 
 
-data_pch_rank = aggregate(.~ DENS+MXQ_rank+CSD, data = DATA, mean)
+data_pch_rank = aggregate(.~ MXQ_rank+DENS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 #data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
@@ -46,40 +49,43 @@ data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 
-ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe, linetype = CSD))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = MXQ_rank, y= pe,linetype = DENS))+geom_line()+theme_classic()+facet_grid()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
-###MXQ RANKED pch###
+###Numb RES  PE###
 DATA = output
+DATA$CSD = 1
 #DATA$CS[DATA$CS == 0] <- "LowVar"
 #DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 
 
-data_pch_rank = aggregate(.~ DENS+MXQ_rank+SCD, data = DATA, mean)
+data_pch_rank = aggregate(.~ res_numb_rank+DENS, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 #data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
-data_pch_rank$SCD = as.factor(data_pch_rank$SCD)
-ggplot(data_pch_rank, aes(x = MXQ_rank, y= pch, linetype = SCD))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+ggplot(data_pch_rank, aes(x = res_numb_rank, y= pe,linetype = DENS))+geom_line()+geom_line()+theme_classic()+facet_grid()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)
 
 
 ###Cost Share Standard Ressources RANKED PERCENTAGE ERROR###
 DATA = output
+DATA$CSD =1
 #DATA$CS[DATA$CS == 0] <- "LowVar"
 #DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 
 
-data_pch_rank = aggregate(.~ DENS+cost_ratio_std_res_rank+ACP, data = DATA, mean)
+data_pch_rank = aggregate(.~ DENS+reported_unit_cost_share_rank, data = DATA, mean)
+
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 #data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
 data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
-ggplot(data_pch_rank, aes(x = cost_ratio_std_res_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = reported_unit_cost_share_rank, y= pe, linetype = DENS))+geom_line()+theme_classic()+facet_grid()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)+ylim(-1,1)
 
 
 
@@ -181,12 +187,14 @@ ggplot(data_pch_rank, aes(x = driverVar_rank, y= pe, linetype = ACP))+geom_line(
 
 
 ###cons BigDriver RANKED PERCENTAGE ERROR###
-DATA = subset(output, ACP>=3)
-DATA$PERROR = abs(DATA$ERROR)/1000000
+DATA =output
+DATA$CSD<-1
+#DATA = subset(output, ACP>=3)
+#DATA$PERROR = abs(DATA$ERROR)/1000000
 #DATA$CS[DATA$CS == 0] <- "LowVar"
 #DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
 
-data_pch_rank = aggregate(.~ CS+cons_bigDriver_rank+ACP+DENS, data = DATA, mean)
+data_pch_rank = aggregate(.~ cons_bigDriver_rank, data = DATA, mean)
 data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
 #data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
 data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
@@ -194,7 +202,28 @@ data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
 data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
 data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
 data_pch_rank$ME = as.factor(data_pch_rank$ME)
-ggplot(data_pch_rank, aes(x = cons_bigDriver_rank, y= pe, linetype = ACP))+geom_line()+theme_classic()+facet_grid(~DENS)+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
+ggplot(data_pch_rank, aes(x = cons_bigDriver_rank, y= pe))+geom_line()+geom_point(aes(shape =ACP))+theme_classic()+facet_grid()+geom_hline(yintercept = 0)+geom_vline(xintercept = 75)#+ylim(-1,1)
+
+
+
+
+###Numner of driver RANKED PERCENTAGE ERROR###
+DATA =output
+DATA$CSD<-1
+#DATA = subset(output, ACP>=3)
+#DATA$PERROR = abs(DATA$ERROR)/1000000
+#DATA$CS[DATA$CS == 0] <- "LowVar"
+#DATA$CS[DATA$CS == 1] <- "LowVar+VolMatch"
+
+data_pch_rank = aggregate(.~ driver_numb_rank+DENS, data = DATA, mean)
+data_pch_rank$DENS = as.factor(data_pch_rank$DENS)
+#data_pch_rank$CS = factor(data_pch_rank$CS, levels = c("LowVar","LowVar+VolMatch"))
+data_pch_rank$DISP2 = as.factor(data_pch_rank$DISP2)
+data_pch_rank$PDR = as.factor(data_pch_rank$PDR)
+data_pch_rank$ACP = as.factor(data_pch_rank$ACP)
+data_pch_rank$Q_VAR = as.factor(data_pch_rank$Q_VAR)
+data_pch_rank$ME = as.factor(data_pch_rank$ME)
+ggplot(data_pch_rank, aes(x = driver_numb_rank, y= pe,linetype =DENS))+geom_line()+theme_classic()+facet_grid()+geom_hline(yintercept = 0)+geom_vline(xintercept = 25)#+ylim(-1,1)
 
 
 
@@ -262,7 +291,56 @@ ggplot(data_pch_rank, aes(x = ACP, y= UC, col = "UC"))+geom_line()+geom_line(aes
 
 
 
+#BOXPLOT
+DATA = subset(output, !is.na(NUMB_RES))
+DATA$mxq_class = 0
+DATA$mxq_class[which(DATA$pch_rank>39)]<-"HIGH"
+DATA$mxq_class[which(DATA$pch_rank<11)]<-"LOW"
 
+DATA_plot = subset(DATA, mxq_class!=0)
+
+ggplot(DATA_plot,aes(y = pe, x= mxq_class))+geom_boxplot()+theme_classic()+geom_hline(yintercept = 0)
+
+
+#mxq undercosting
+wilcox.test(DATA$MXQ[which(DATA$pe< -0.05)], DATA$MXQ[which(DATA$pe<0.05 & DATA$pe> -0.05)], exact = FALSE, correct = TRUE)
+#mxq overcosting
+wilcox.test(DATA$MXQ[which(DATA$pe>0.05)], DATA$MXQ[which(DATA$pe<0.05 & DATA$pe> -0.05)], exact = FALSE, correct = TRUE)
+
+#pch undercosting
+wilcox.test(DATA$pch[which(DATA$pe< -0.05)], DATA$pch[which(DATA$pe<0.05 & DATA$pe> -0.05)], exact = FALSE, correct = TRUE)
+#pch overcosting
+wilcox.test(DATA$pch[which(DATA$pe>0.05)], DATA$pch[which(DATA$pe<0.05 & DATA$pe> -0.05)], exact = FALSE, correct = TRUE)
+
+
+#numb_res undercosting
+wilcox.test(DATA$NUMB_RES[which(DATA$pe< -0.05)], DATA$NUMB_RES[which(DATA$pe<0.05 & DATA$pe> -0.05)], exact = FALSE, correct = TRUE)
+#numb_res overcosting
+wilcox.test(DATA$NUMB_RES[which(DATA$pe>0.05)], DATA$NUMB_RES[which(DATA$pe<0.05 & DATA$pe> -0.05)], exact = FALSE, correct = TRUE)
+
+
+#reported_unit_cost_share undercosting
+wilcox.test(DATA$reported_unit_cost_share[which(DATA$pe< -0.05)], DATA$reported_unit_cost_share[which(DATA$pe<0.05 & DATA$pe> -0.05)], exact = FALSE, correct = TRUE)
+#numb_res overcosting
+wilcox.test(DATA$reported_unit_cost_share[which(DATA$pe>0.05)], DATA$reported_unit_cost_share[which(DATA$pe<0.05 & DATA$pe> -0.05)], exact = FALSE, correct = TRUE)
+
+
+#driver_numb undercosting
+wilcox.test(DATA$driver_numb[which(DATA$pe< -0.05)], DATA$driver_numb[which(DATA$pe<0.05 & DATA$pe> -0.05)], exact = FALSE, correct = TRUE)
+#numb_res overcosting
+wilcox.test(DATA$driver_numb[which(DATA$pe>0.05)], DATA$driver_numb[which(DATA$pe<0.05 & DATA$pe> -0.05)], exact = FALSE, correct = TRUE)
+
+
+t.test(DATA$driver_numb[which(DATA$pe< -0.05)], DATA$driver_numb[which(DATA$pe<0.05 & DATA$pe> -0.05)])
+
+
+wilcox.test(DATA$NUMB_RES[which(DATA$pe>0.05)], DATA$NUMB_RES[which(DATA$pe<0.05 & DATA$pe> -0.05)], exact = FALSE, correct = TRUE)
+
+
+mean(DATA$MXQ[which(DATA$pe< -0.05)])
+mean(DATA$MXQ[which(DATA$pe<0.05 & DATA$pe> -0.05)])
+
+shapiro.test(DATA$MXQ)
 
 ###MAPE
 
@@ -402,7 +480,7 @@ apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.nu
 
 ##Regression Analysis - Percentage Error
 
-
+output$batch_costs_share = output$batch_costs/output$pcb
 
 ##Regression Analysis - Percentage Error - Single Driver Costing System 
 DATA = output
@@ -410,12 +488,15 @@ DATA = output
 library(apaTables)
 
 
-ORIG_DATA = subset(DATA, CSD == "SCD" & DENS ==0.25) 
+ORIG_DATA = subset(DATA) 
 
-reg = pe ~ pch+MXQ+res_numb+cost_ratio_std_res
+reg = pe ~ pch+MXQ+res_numb+reported_unit_cost_share+cons_bigDriver+driver_numb
 reg_data = data.frame(lapply(ORIG_DATA[,all.vars(reg)], scale))
 linear_reg_std = lm(reg, data = reg_data)
 apa.reg.table(linear_reg_std,filename = paste0("replication",1,".doc"), table.number = 1)
+
+
+
 
 ORIG_DATA = subset(DATA, CSD == "SCD" & DENS ==0.5) 
 

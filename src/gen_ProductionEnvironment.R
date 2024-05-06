@@ -273,7 +273,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
   
 }
 
-.gen_RES_CONS_PAT_Anand_match <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy,standard_res_size) {
+.gen_RES_CONS_PAT_Anand_match <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy,standard_res_size,RCC,non_unit_level_resources) {
   
   RES_CONS_PAT_list = list()
   
@@ -353,13 +353,36 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     RES_CONS_PAT[,1] <- (BASE)
     RES_CONS_PAT <- ceiling(abs(RES_CONS_PAT) * 10)
     
+    
+    
+    ###Non-unit-level costs and resource consumption
+    
+    RES_CONS_PATp_single = sweep((RES_CONS_PAT),2,colSums(RES_CONS_PAT),"/")
+    
+    #non_unit_size = runif(1,0.2,0.6)
+    #non_unit_size = 0.8   #Schmidt 2023 ca. 0.46
+
+    #non_unit = round(0.64*50) # Schmidt 2023 ca. 0.64
+
+    non_unit_resources = c((NUMB_RES - non_unit_level_resources+1):NUMB_RES)
+
+    non_unit_level_costs = sum(RCC[non_unit_resources])
+
+    
+    batch_costs = RES_CONS_PATp_single[,non_unit_resources] %*% RCC[non_unit_resources]
+    
+    
+    
     #product portfolio --> matching demand with complexity 
-    individuality = calc_individuality(RES_CONS_PAT,standard_res_size)
+    individuality = batch_costs
+    
     #individuality = calc_individuality(RES_CONS_PAT,standard_res_size)
     individuality_sorted = sort(individuality,decreasing=FALSE,index.return=TRUE)
     mxq_sorted = sort(MXQ,decreasing=TRUE,index.return=TRUE)$ix
     
     RES_CONS_PAT_new = matrix(0, nrow = NUMB_PRO, ncol = NUMB_RES, byrow = TRUE)
+    
+    
     
     for(i in 1:length(individuality)){
       
@@ -367,6 +390,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
       RES_CONS_PAT_new[mxq_sorted[i],] <- RES_CONS_PAT[complexity_index,]
       
     }
+
     RES_CONS_PAT = RES_CONS_PAT_new
     
     # 
@@ -377,6 +401,11 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     TCU <- colSums(RES_CONS_PAT_TOTAL)
     ##INDIVIDUAL REQUIREMENTS OF THE PRODUCTS * DEMAMD / TRU (Currently like this in Anand et al. 2019)
     RES_CONS_PATp <- sweep((RES_CONS_PAT_TOTAL),2,TCU,"/") #Absolute matrix to relative matrix
+    
+    RES_CONS_PATp_single = sweep((RES_CONS_PAT),2,colSums(RES_CONS_PAT),"/")
+    RES_CONS_PATp[,non_unit_resources] = RES_CONS_PATp_single[,non_unit_resources]
+    
+    batch_costs = RES_CONS_PATp[,non_unit_resources] %*% RCC[non_unit_resources]
     
     
     ## ===================== EXCPETION HANDLER ====================
@@ -393,6 +422,13 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     }
     
   }
+  
+  
+  
+  
+  
+  
+  
   
   ul = c(1:DISP1)
   bl = c((DISP1+1):NUMB_RES)
@@ -436,11 +472,12 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
   RES_CONS_PAT_list$DENS = DENS_draw
   RES_CONS_PAT_list$COR1 = COR1_draw
   RES_CONS_PAT_list$COR2 = COR2_draw
-  RES_CONS_PAT_list$non_unit_size = 0 #all costs are unit-level
   RES_CONS_PAT_list$RES_CONS_PAT = RES_CONS_PAT
   RES_CONS_PAT_list$RES_CONS_PAT_TOTAL = RES_CONS_PAT_TOTAL
   RES_CONS_PAT_list$RES_CONS_PATp = RES_CONS_PATp
   RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
+  RES_CONS_PAT_list$non_unit_resources = non_unit_resources
+  RES_CONS_PAT_list$batch_costs = batch_costs
   #
   #
   return(RES_CONS_PAT_list)
@@ -448,7 +485,7 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
   
 }
 
-.gen_RES_CONS_PAT_Case_match <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy, RES_CONS_PAT, standard_res_size) {
+.gen_RES_CONS_PAT_Case_match <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy,RES_CONS_PAT,standard_res_size,RCC) {
   
   RES_CONS_PAT_list = list()
   
@@ -487,32 +524,49 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     COR2_draw = COR2
     sqrt_const_2 <- sqrt(1 - (COR2 * COR2))
     
-    ####CASE STUDY LOADING#######
     
+#=================== STEP 1.b DENSITY =========================
+
     
+    ###Non-unit-level costs and resource consumption
     
+    RES_CONS_PATp_single = sweep((RES_CONS_PAT),2,colSums(RES_CONS_PAT),"/")
     
+    #non_unit_size = runif(1,0.2,0.6)
+    #non_unit_size = 0.8   #Schmidt 2023 ca. 0.46
+    
+    #non_unit = round(0.64*50) # Schmidt 2023 ca. 0.64
+    
+    non_unit_resources = c(6,8,13,14,16,20)
+    
+    non_unit_level_costs = sum(RCC[non_unit_resources])
+    
+
+    batch_costs = as.matrix(RES_CONS_PATp_single[,non_unit_resources]) %*% RCC[non_unit_resources]
     
     
     
     #product portfolio --> matching demand with complexity 
-    complexity = calc_individuality(RES_CONS_PAT,standard_res_size)
-    complexity_sorted = sort(complexity,decreasing=FALSE,index.return=TRUE)
-    mxq_sorted = sort(MXQ,index.return=TRUE)$ix
+    individuality = batch_costs
     
-    RES_CONS_PAT_new = RES_CONS_PAT
+    #individuality = calc_individuality(RES_CONS_PAT,standard_res_size)
+    individuality_sorted = sort(individuality,decreasing=FALSE,index.return=TRUE)
+    mxq_sorted = sort(MXQ,decreasing=TRUE,index.return=TRUE)$ix
     
+    RES_CONS_PAT_new = matrix(0, nrow = NUMB_PRO, ncol = NUMB_RES, byrow = TRUE)
+    RES_CONS_PAT = as.matrix(RES_CONS_PAT)
 
-    for(i in 1:length(complexity)){
+    for(i in 1:length(individuality)){
       
-      complexity_index = complexity_sorted$ix[i]
+      complexity_index = individuality_sorted$ix[i]
       RES_CONS_PAT_new[mxq_sorted[i],] <- RES_CONS_PAT[complexity_index,]
-   
+      
     }
+    
     RES_CONS_PAT = RES_CONS_PAT_new
     
-    # 
-    ##INDIVIDUAL REQUIREMENTS OF THE PRODUCTS * DEMAND
+
+    #INDIVIDUAL REQUIREMENTS OF THE PRODUCTS * DEMAND
     #RES_CONS_PAT_TOTAL = RES_CONS_PAT*MXQ
     RES_CONS_PAT_TOTAL <- sweep(RES_CONS_PAT,MARGIN = 1,MXQ,'*')     #does this needs to be a matrix multiplication?
     ##CALCULATING TCU
@@ -520,8 +574,29 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
     ##INDIVIDUAL REQUIREMENTS OF THE PRODUCTS * DEMAMD / TRU (Currently like this in Anand et al. 2019)
     RES_CONS_PATp <- sweep((RES_CONS_PAT_TOTAL),2,TCU,"/") #Absolute matrix to relative matrix
     
+    RES_CONS_PATp_single = sweep((RES_CONS_PAT),2,colSums(RES_CONS_PAT),"/")
+    RES_CONS_PATp[,non_unit_resources] = RES_CONS_PATp_single[,non_unit_resources]
     
-
+    batch_costs = RES_CONS_PATp[,non_unit_resources] %*% RCC[non_unit_resources]
+    
+    
+    ## ===================== EXCPETION HANDLER ====================
+    
+    
+    PRO_ZEROS<-any(rowSums(RES_CONS_PAT[,])==0)   #every product need at least one resource (exclude column one??)
+    RES_ZEROS<-any(colSums(RES_CONS_PAT[,])==0)   #every resource needs to be used at least once
+    BASE_ZEROS <-any(RES_CONS_PAT[,1]==0)         #first resource needs to be in every product ->why?
+    #BASE_ZEROS<-FALSE
+    
+   
+  
+  
+  
+  
+  
+  
+  
+  
   ul = c(1:DISP1)
   bl = c((DISP1+1):NUMB_RES)
   pl = 0
@@ -564,17 +639,147 @@ RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
   RES_CONS_PAT_list$DENS = DENS_draw
   RES_CONS_PAT_list$COR1 = COR1_draw
   RES_CONS_PAT_list$COR2 = COR2_draw
-  RES_CONS_PAT_list$non_unit_size = 0 #all costs are unit-level
-  RES_CONS_PAT_list$RES_CONS_PAT = as.matrix(RES_CONS_PAT)
-  RES_CONS_PAT_list$RES_CONS_PAT_TOTAL = as.matrix(RES_CONS_PAT_TOTAL)
-  RES_CONS_PAT_list$RES_CONS_PATp = as.matrix(RES_CONS_PATp)
+  RES_CONS_PAT_list$RES_CONS_PAT = RES_CONS_PAT
+  RES_CONS_PAT_list$RES_CONS_PAT_TOTAL = RES_CONS_PAT_TOTAL
+  RES_CONS_PAT_list$RES_CONS_PATp = RES_CONS_PATp
   RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
+  RES_CONS_PAT_list$non_unit_resources = non_unit_resources
+  RES_CONS_PAT_list$batch_costs = batch_costs
   #
   #
   return(RES_CONS_PAT_list)
   
   
 }
+
+
+# .gen_RES_CONS_PAT_Case_match <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy, RES_CONS_PAT, standard_res_size) {
+#   
+#   RES_CONS_PAT_list = list()
+#   
+#   ## ====================== STEP 0.b Determining the density (DENS)  =========================
+#   #Randomization and setting clear design points. 
+#   
+#   if(DENS == -1)
+#   {
+#     DENS_MIN = 0.4;
+#     DENS_MAX = 0.7;
+#     DENS = runif(1, DENS_MIN, DENS_MAX);
+#   }
+#   
+#   DENS_draw = DENS
+#   
+#   ## ====================== STEP 1 BASELINE NORM ========================= 
+#   
+#  
+#     ## ====================== STEP 1.a CORRELATION ========================= 
+#     # Products and Resource are transposed in constrast to Anand 2019 but there is no issue in the model
+#     # Rows Products Colums Resources
+#     
+#     
+#     
+#     # Correlation of the top [DISP1] resources
+#     if(COR1 == -1){
+#       COR1 <- runif(1, -0.2, 0.8)
+#     }
+#     COR1_draw = COR1
+#     sqrt_const_1 <- sqrt(1 - (COR1 * COR1))
+#     
+#     # Correlation of the remaining resources
+#     if(COR2 == -1){
+#       COR2 <- runif(1, -0.8, 0.2)
+#     }
+#     COR2_draw = COR2
+#     sqrt_const_2 <- sqrt(1 - (COR2 * COR2))
+#     
+#     ####CASE STUDY LOADING#######
+#     
+#     
+#     
+#     
+#     
+#     
+#     
+#     #product portfolio --> matching demand with complexity 
+#     complexity = calc_individuality(RES_CONS_PAT,standard_res_size)
+#     complexity_sorted = sort(complexity,decreasing=FALSE,index.return=TRUE)
+#     mxq_sorted = sort(MXQ,index.return=TRUE)$ix
+#     
+#     RES_CONS_PAT_new = RES_CONS_PAT
+#     
+# 
+#     for(i in 1:length(complexity)){
+#       
+#       complexity_index = complexity_sorted$ix[i]
+#       RES_CONS_PAT_new[mxq_sorted[i],] <- RES_CONS_PAT[complexity_index,]
+#    
+#     }
+#     RES_CONS_PAT = RES_CONS_PAT_new
+#     
+#     # 
+#     ##INDIVIDUAL REQUIREMENTS OF THE PRODUCTS * DEMAND
+#     #RES_CONS_PAT_TOTAL = RES_CONS_PAT*MXQ
+#     RES_CONS_PAT_TOTAL <- sweep(RES_CONS_PAT,MARGIN = 1,MXQ,'*')     #does this needs to be a matrix multiplication?
+#     ##CALCULATING TCU
+#     TCU <- colSums(RES_CONS_PAT_TOTAL)
+#     ##INDIVIDUAL REQUIREMENTS OF THE PRODUCTS * DEMAMD / TRU (Currently like this in Anand et al. 2019)
+#     RES_CONS_PATp <- sweep((RES_CONS_PAT_TOTAL),2,TCU,"/") #Absolute matrix to relative matrix
+#     
+#     
+# 
+#   ul = c(1:DISP1)
+#   bl = c((DISP1+1):NUMB_RES)
+#   pl = 0
+#   fl = 0
+#   
+#   
+#   
+#   # ul_bl = mean(cor(RES_CONS_PATp[,ul],RES_CONS_PATp[,bl]))
+#   # bl_pl = mean(cor(RES_CONS_PATp[,bl],RES_CONS_PATp[,pl]))
+#   # ul_pl = mean(cor(RES_CONS_PATp[,ul],RES_CONS_PATp[,pl]))
+#   # bl_fl = mean(cor(RES_CONS_PATp[,bl],RES_CONS_PATp[,fl]))
+#   # pl_fl = mean(cor(RES_CONS_PATp[,pl],RES_CONS_PATp[,fl]))
+#   # ul_fl = mean(cor(RES_CONS_PATp[,ul],RES_CONS_PATp[,fl]))
+#   # 
+#   
+#   ul_bl = cor(rowMeans(RES_CONS_PATp[,ul]),rowMeans(RES_CONS_PATp[,bl]))
+#   bl_pl = cor(rowMeans(RES_CONS_PATp[,bl]),rowMeans(RES_CONS_PATp[,pl]))
+#   ul_pl = cor(rowMeans(RES_CONS_PATp[,ul]),rowMeans(RES_CONS_PATp[,pl]))
+#   bl_fl = cor(rowMeans(RES_CONS_PATp[,bl]),rowMeans(RES_CONS_PATp[,fl]))
+#   pl_fl = cor(rowMeans(RES_CONS_PATp[,pl]),rowMeans(RES_CONS_PATp[,fl]))
+#   ul_fl = cor(rowMeans(RES_CONS_PATp[,ul]),rowMeans(RES_CONS_PATp[,fl]))
+#   mxq_ul = cor(MXQ,rowMeans(RES_CONS_PATp[,ul]))
+#   mxq_bl = cor(MXQ,rowMeans(RES_CONS_PATp[,bl]))
+#   mxq_pl = cor(MXQ,rowMeans(RES_CONS_PATp[,pl]))
+#   mxq_fl = cor(MXQ,rowMeans(RES_CONS_PATp[,fl]))
+#   
+#   
+#   cost_hierarchy$ul = ul
+#   cost_hierarchy$bl = bl
+#   cost_hierarchy$pl = pl
+#   cost_hierarchy$fl = fl
+#   
+#   cost_hierarchy$ul_bl = ul_bl
+#   cost_hierarchy$bl_pl = bl_pl
+#   cost_hierarchy$ul_pl = ul_pl
+#   cost_hierarchy$bl_fl = bl_fl
+#   cost_hierarchy$pl_fl = pl_fl
+#   cost_hierarchy$ul_fl = ul_fl
+#   
+#   RES_CONS_PAT_list$DENS = DENS_draw
+#   RES_CONS_PAT_list$COR1 = COR1_draw
+#   RES_CONS_PAT_list$COR2 = COR2_draw
+#   RES_CONS_PAT_list$non_unit_size = 0 #all costs are unit-level
+#   RES_CONS_PAT_list$RES_CONS_PAT = as.matrix(RES_CONS_PAT)
+#   RES_CONS_PAT_list$RES_CONS_PAT_TOTAL = as.matrix(RES_CONS_PAT_TOTAL)
+#   RES_CONS_PAT_list$RES_CONS_PATp = as.matrix(RES_CONS_PATp)
+#   RES_CONS_PAT_list$cost_hierarchy = cost_hierarchy
+#   #
+#   #
+#   return(RES_CONS_PAT_list)
+#   
+#   
+# }
 
 .gen_RES_CONS_PAT_Case <- function(NUMB_PRO,NUMB_RES, DENS, DISP1,COR1,COR2,MXQ,cost_hierarchy, RES_CONS_PAT) {
   
@@ -1910,7 +2115,7 @@ cost_hierarchy$ul_fl = ul_fl
   
   RCC_list$DISP2_draw = DISP2
 
-  
+  browser()
   return(RCC_list)
   
 }
@@ -1919,14 +2124,49 @@ cost_hierarchy$ul_fl = ul_fl
 .gen_RCC <- function(RC_VAR,NUMB_RES){
   
   TC = 1000000
+  non_unit_level_cost_share = runif(1,0.36,0.56)#0.36;0.56
+  non_unit_level_resources= round(runif(1,0.54,0.74)*NUMB_RES,0)#0.54;0.74
+  #non_unit_level_cost_share = runif(1,0.5,0.5)#0.36;0.56
+  #non_unit_level_resources= round(runif(1,0.5,0.5)*NUMB_RES,0)#0.54;0.74
+  
+  if(CaseStudy==1){non_unit_level_resources = 6}   
+
+  
+  
+  NULC = non_unit_level_cost_share*TC
+  ULC = TC-NULC
   if(RC_VAR == "LOW"){sd = 0.5}else if(RC_VAR == "MID"){sd = 1}else if(RC_VAR=='HIGH'){sd = 1.5}else if(RC_VAR == -1){sd = runif(1,min = 0.5,max =1.5)}
 
-  preRCC = rlnorm(NUMB_RES, meanlog = 1, sdlog = sd) #preDemand is buildup as a -> LogNormal Distribution 
-  RCC = ceiling((preRCC/sum(preRCC))*TC)
+  preRCC = rlnorm((NUMB_RES-non_unit_level_resources), meanlog = 1, sdlog = sd) #preDemand is buildup as a -> LogNormal Distribution 
+  RCC_unit = round(((preRCC/sum(preRCC))*ULC),0)
   
+  max_RC = RCC_unit[which.max(RCC_unit)]
+  RCC_unit = RCC_unit[-which.max(RCC_unit)]
+  RCC_unit = c(max_RC,RCC_unit)
+
+  preRCC = rlnorm(non_unit_level_resources, meanlog = 1, sdlog = sd) #preDemand is buildup as a -> LogNormal Distribution 
+  RCC_batch = round(((preRCC/sum(preRCC))*NULC),0)
+  
+
+  RCC = c(RCC_unit,RCC_batch)
+  
+  if(CaseStudy==1){
+    nul_resources = c(6,8,13,14,16,20)
+    RCC[nul_resources] = RCC_batch
+    RCC[setdiff(c(1:NUMB_RES),nul_resources)] =RCC_unit   
+  }
+  
+  if(TC-sum(RCC)>0){
+  RCC[which.max(RCC)] = RCC[which.max(RCC)]-(TC-sum(RCC))
+  }else if(TC-sum(RCC)<0){
+    RCC[which.min(RCC)] = RCC[which.min(RCC)]+(TC-sum(RCC))
+  }
+    
+  RCC_list = list()
   RCC_list$RCC = RCC
-  
   RCC_list$DISP2_draw = sd
+  RCC_list$non_unit_level_costs = NULC
+  RCC_list$non_unit_level_resources = non_unit_level_resources
   
   
   return(RCC_list)
@@ -2095,7 +2335,7 @@ calc_nonzero_cons <- function(matrix){
     
   }else{nonzero_cons =1}
 
-  nonzero_cons= nonzero_cons/ncol(matrix)
+  #nonzero_cons= nonzero_cons/ncol(matrix)
   return(nonzero_cons)  
   
 }
@@ -2179,7 +2419,9 @@ calc_cons_bigDriver <- function(matrix){
       
     } 
     
-  }else if(length(which(CostingSystem_list$ACP>200000))==0){cons_bigDriver==0}else{cons_bigDriver = matrix}
+  }else if(length(which(CostingSystem_list$ACP>200000))==0){cons_bigDriver=matrix[,which.max(CostingSystem_list$ACP)]}else{cons_bigDriver = matrix}
+  
+  if(any(is.na(cons_bigDriver))){cons_bigDriver = matrix[,1]}
   
   
   return(cons_bigDriver)  
@@ -2251,4 +2493,13 @@ calc_cons_var <- function(matrix){
 
   
 }
+
+
+
+preDemand = rlnorm(50, meanlog = 1, sdlog = 0.5) #preDemand is buildup as a -> LogNormal Distribution 
+COSTS= ceiling((preDemand/sum(preDemand))*1000)
+
+plot(sort(COSTS,decreasing = TRUE))
+
+
 
